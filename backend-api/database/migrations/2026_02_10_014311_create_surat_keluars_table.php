@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('surat_keluars', function (Blueprint $table) {
             $table->id();
+            $table->string('nomor_surat')->unique();
+            $table->date('tanggal_surat');
+            $table->string('kode_klasifikasi');
+            $table->string('perihal');
+            $table->string('jenis_surat');
             $table->timestamps();
         });
     }
