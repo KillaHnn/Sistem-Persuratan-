@@ -8,7 +8,7 @@ use App\Http\Controllers\SuratCutiController;
 use App\Http\Controllers\SuratTunjanganController;
 use App\Http\Middleware\LoginCredentialMiddleware;
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware(LoginCredentialMiddleware::class);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('profiles', ProfileMHSController::class);

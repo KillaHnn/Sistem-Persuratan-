@@ -32,13 +32,11 @@ class AuthController extends Controller
         // Enforce role-based login constraints
         if ($user->role === 'mahasiswa') {
             if ($field !== 'email') {
-                $request->user()->currentAccessToken()->delete(); 
                 return response()->json(['message' => 'Mahasiswa must login with Email'], 403);
             }
         } else {
             // If user is NOT mahasiswa, they MUST use username
             if ($field !== 'username') {
-                $request->user()->currentAccessToken()->delete();
                 return response()->json(['message' => 'Staff/Admin must login with Username'], 403);
             }
         }

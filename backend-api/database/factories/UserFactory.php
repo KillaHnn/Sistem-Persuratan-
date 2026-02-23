@@ -59,7 +59,7 @@ class UserFactory extends Factory
      */
     public function configure(): static
     {
-        return $this->afterCreating(function (User $user) {
+        return $this->afterCreating(function (\App\Models\User $user) {
             // Assign role if it exists in the database
             // verification: we use try-catch to avoid breaking tests if roles are not seeded
             try {

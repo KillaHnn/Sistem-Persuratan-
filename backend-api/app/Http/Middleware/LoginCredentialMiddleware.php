@@ -18,12 +18,17 @@ class LoginCredentialMiddleware
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required',
+            ], [
+                'email.required' => 'Mahasiswa wajib login menggunakan Email.',
+                'email.email' => 'Format email mahasiswa tidak valid.'
             ]);
             $request->merge(['login_field' => 'email']);
         } else {
             $request->validate([
                 'username' => 'required',
                 'password' => 'required',
+            ], [
+                'username.required' => "Role $role wajib login menggunakan Username."
             ]);
             $request->merge(['login_field' => 'username']);
         }
