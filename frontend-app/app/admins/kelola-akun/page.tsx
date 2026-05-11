@@ -89,7 +89,7 @@ export default function KelolaAkunPage() {
                     <p className="text-gray-500">Manajemen data pengguna dan hak akses sistem</p>
                 </div>
 
-                <button className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors shadow-sm">
+                <button className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl transition-colors shadow-sm">
                     <Plus size={20} />
                     <span>Tambah Pengguna</span>
                 </button>
@@ -102,7 +102,7 @@ export default function KelolaAkunPage() {
                     <input
                         type="text"
                         placeholder="Cari nama, username, atau email..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -111,7 +111,7 @@ export default function KelolaAkunPage() {
                 <div className="flex gap-2">
                     <button
                         onClick={fetchUsers}
-                        className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-blue-100"
+                        className="px-4 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-xl transition-colors border border-orange-100"
                     >
                         Refresh
                     </button>
@@ -172,12 +172,12 @@ export default function KelolaAkunPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-2">
-                                                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                                <button className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-100" title="Edit">
                                                     <Edit size={18} />
                                                 </button>
                                                 <button
-                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Delete"
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                                    title="Hapus"
                                                     onClick={() => handleDelete(user.id)}
                                                 >
                                                     <Trash2 size={18} />

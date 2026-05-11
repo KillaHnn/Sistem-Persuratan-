@@ -1,4 +1,4 @@
-import Sidebara from "../div_prodi/components/sidebar"; // Reusing the sidebar component as it's flexible
+import Sidebar from "../div_sekolah/components/sidebar"; // Reusing the sidebar component as it's flexible
 
 export default function DivSekolahLayout({
     children,
@@ -7,7 +7,7 @@ export default function DivSekolahLayout({
 }) {
     return (
         <div className="flex min-h-screen bg-gray-50/50">
-            <Sidebara />
+            <Sidebar />
             <main className="flex-1 p-8 md:p-12">
                 {children}
             </main>

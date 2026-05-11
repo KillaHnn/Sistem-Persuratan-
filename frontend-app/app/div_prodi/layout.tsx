@@ -1,4 +1,4 @@
-import Sidebara from "./components/sidebar";
+import Sidebar from "./components/sidebar";
 
 export default function DivProdiLayout({
     children,
@@ -7,7 +7,7 @@ export default function DivProdiLayout({
 }) {
     return (
         <div className="flex min-h-screen bg-gray-50/50">
-            <Sidebara />
+            <Sidebar />
             <main className="flex-1 p-8 md:p-12">
                 {children}
             </main>

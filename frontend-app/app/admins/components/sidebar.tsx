@@ -43,6 +43,18 @@ export default function Sidebara() {
         }
     }, []);
 
+    const handleLogout = async () => {
+        try {
+            const res = await fetch("/api/logout", { method: "POST" });
+            if (res.ok) {
+                localStorage.removeItem("user");
+                window.location.href = "/login";
+            }
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
+    };
+
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=334155&color=fff&size=64`;
 
     return (
@@ -102,7 +114,7 @@ export default function Sidebara() {
                 </div>
 
                 {/* BOTTOM - PROFILE */}
-                <div className="px-4 py-4 mt-auto">
+                <div className="px-4 py-4 mt-auto border-t border-gray-100 space-y-2">
                     <Link href="/admins/profile" className="block">
                         <div className="flex items-center gap-3 rounded-xl hover:bg-gray-100 p-2 transition cursor-pointer">
                             <img
@@ -123,6 +135,14 @@ export default function Sidebara() {
                             )}
                         </div>
                     </Link>
+
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 text-sm hover:bg-red-50 transition"
+                    >
+                        <LogOut size={18} />
+                        {open && <span className="font-medium">Logout</span>}
+                    </button>
                 </div>
             </aside>
         </div>

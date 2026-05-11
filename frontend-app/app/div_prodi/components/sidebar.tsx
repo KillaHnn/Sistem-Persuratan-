@@ -30,7 +30,7 @@ type MenuItem = {
     subItems?: SubMenuItem[];
 };
 
-export default function Sidebara() {
+export default function Sidebar() {
     const [open, setOpen] = useState(true);
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
     const [userData, setUserData] = useState({
@@ -73,11 +73,82 @@ export default function Sidebara() {
             ]
         },
         { name: "Pelayanan Surat", icon: FileText, href: `${bp}/pelayanan-surat` },
+        {
+            name: "Layanan S1",
+            icon: FileText,
+            subItems: [
+                { name: "Surat Cuti", href: `${bp}/layanan-s1/surat-cuti` },
+                { name: "Surat Keluar", href: `${bp}/layanan-s1/surat-keluar` },
+                { name: "Surat Keterangan Aktif", href: `${bp}/layanan-s1/surat-keterangan-aktif` },
+                { name: "Surat Keterangan", href: `${bp}/layanan-s1/surat-keterangan` },
+                { name: "Surat Magang", href: `${bp}/layanan-s1/surat-magang` },
+                { name: "Surat Pengunduran Mahasiswa", href: `${bp}/layanan-s1/surat-pengunduran-mahasiswa` },
+                { name: "Surat Perpanjang Mahasiswa", href: `${bp}/layanan-s1/surat-perpanjang-mahasiswa` },
+                { name: "Surat Rekomendasi Kampus Mengajar", href: `${bp}/layanan-s1/surat-rekomendasi-kampus-mengajar` },
+                { name: "Surat Tunjangan", href: `${bp}/layanan-s1/surat-tunjangan` },
+            ]
+        },
+        {
+            name: "Layanan Pasca Sarjana",
+            icon: Inbox,
+            subItems: [
+                { name: "Surat Sidang Komisi", href: `${bp}/surat-sidang-komisi` },
+                { name: "SK Komisi Pembimbing", href: `${bp}/sk-komisi-pembimbing` },
+                { name: "Surat Cuti Mahasiswa", href: `${bp}/surat-cuti` },
+                { name: "Surat Keterangan Aktif Setelah Cuti", href: `${bp}/aktif-setelah-cuti` },
+                { name: "Surat Keterangan Aktif Mahasiswa", href: `${bp}/surat-keterangan-aktif` },
+                { name: "Surat Tunjangan Anak", href: `${bp}/surat-tunjangan-anak` },
+            ]
+        },
+        {
+            name: "Unit Kerja",
+            icon: Inbox,
+            subItems: [
+                { name: "Surat Tugas", href: `${bp}/surat-Tugas` },
+                { name: "SK Dekan", href: `${bp}/sk-dekan` },
+                { name: "Surat Lainnya", href: `${bp}/surat-lainnya` },
+
+            ]
+        },
+        {
+            name: "Penyusutan Arsip",
+            icon: Inbox,
+            subItems: [
+                { name: "Pemindahan", href: `${bp}/pemindahan` },
+                { name: "Pemusnahan", href: `${bp}/pemusnahan` },
+                { name: "Penyerahan", href: `${bp}/penyerahan` },
+
+            ]
+        },
+        {
+            name: "Laporan",
+            icon: Inbox,
+            subItems: [
+                { name: "Daftar Arsip", href: `${bp}/daftar-arsip` },
+                { name: "Daftar Arsip Aktif", href: `${bp}/daftar-arsip-aktif` },
+                { name: "Daftar Arsip InAktif", href: `${bp}/daftar-arsip-inaktif` },
+                { name: "Daftar Arsip Usul Musnah", href: `${bp}/daftar-arsip-usul-musnah` },
+                { name: "Daftar Arsip Statis", href: `${bp}/daftar-arsip-statis` },
+            ]
+        },
+
     ];
 
     const toggleSubmenu = (name: string) => {
         if (!open) setOpen(true);
         setOpenSubmenu(openSubmenu === name ? null : name);
+    };
+
+    const handleLogout = async () => {
+        try {
+            const res = await fetch("/api/logout", { method: "POST" });
+            if (res.ok) {
+                localStorage.removeItem("user");
+                window.location.href = "/login";
+            }
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
     };
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=${userData.basePath === '/div_sekolah' ? '059669' : '2563eb'}&color=fff&size=64`;
@@ -188,7 +259,7 @@ export default function Sidebara() {
                     </nav>
 
                     {/* BOTTOM - PROFILE */}
-                    <div className="px-3 py-6 mt-auto border-t border-gray-100">
+                    <div className="px-3 py-4 mt-auto border-t border-gray-100 space-y-2">
                         <Link href={`${bp}/profile`} className="block">
                             <div className="flex items-center gap-3 rounded-xl hover:bg-gray-50 p-2 transition cursor-pointer group">
                                 <div className="relative">
@@ -212,6 +283,14 @@ export default function Sidebara() {
                                 )}
                             </div>
                         </Link>
+
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-600 text-sm hover:bg-red-50 transition"
+                        >
+                            <LogOut size={18} />
+                            {open && <span className="font-medium">Logout</span>}
+                        </button>
                     </div>
                 </div>
             </aside>

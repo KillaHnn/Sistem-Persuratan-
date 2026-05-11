@@ -187,14 +187,7 @@ export default function ProfilePage() {
                                     <h1 className="text-2xl font-bold text-gray-900">Informasi Pribadi</h1>
                                     <p className="text-gray-500 text-sm mt-1">Kelola data diri dan informasi akun anda</p>
                                 </div>
-                                {!isEditing && (
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition"
-                                    >
-                                        Edit Profil
-                                    </button>
-                                )}
+                                
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6">

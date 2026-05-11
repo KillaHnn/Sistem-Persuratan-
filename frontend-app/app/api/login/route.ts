@@ -6,6 +6,7 @@ export async function POST(req: Request) {
     
     const identifier = body.identifier || body.username || body.email;
     const password = body.password;
+    const role = body.role;
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -18,8 +19,8 @@ export async function POST(req: Request) {
 
     // Pastikan hanya kirim SALAH SATU field, jangan keduanya
     const payload = isEmail
-      ? { email: identifier, password: password }      // mahasiswa → kirim 'email' saja
-      : { username: identifier, password: password };  // admin/staff → kirim 'username' saja
+      ? { email: identifier, password: password, role: role}      // mahasiswa → kirim 'email' saja
+      : { username: identifier, password: password, role: role};  // admin/staff → kirim 'username' saja
 
     // Tambah log untuk verifikasi
     console.log("Payload yang dikirim:", JSON.stringify(payload));

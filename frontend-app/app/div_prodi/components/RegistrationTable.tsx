@@ -6,7 +6,8 @@ import {
     PlusCircle,
     FilePlus,
     Filter,
-    MoreVertical,
+    Edit,
+    Trash2,
     Download,
     Printer,
     ArrowUpDown,
@@ -25,6 +26,10 @@ interface RegistrationTableProps {
     data: any[];
     onAddType1?: () => void;
     onAddType2?: () => void;
+    onAdd?: () => void;
+    addText?: string;
+    onEdit?: (row: any) => void;
+    onDelete?: (row: any) => void;
 }
 
 export default function RegistrationTable({
@@ -32,7 +37,11 @@ export default function RegistrationTable({
     columns,
     data,
     onAddType1,
-    onAddType2
+    onAddType2,
+    onAdd,
+    addText,
+    onEdit,
+    onDelete
 }: RegistrationTableProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterBy, setFilterBy] = useState("hal");
@@ -47,20 +56,36 @@ export default function RegistrationTable({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={onAddType1}
-                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100 font-medium text-sm"
-                    >
-                        <PlusCircle size={18} />
-                        <span>Tambah Format A</span>
-                    </button>
-                    <button
-                        onClick={onAddType2}
-                        className="flex items-center gap-2 bg-white text-gray-700 border border-gray-200 px-4 py-2.5 rounded-xl hover:bg-gray-50 transition-all font-medium text-sm"
-                    >
-                        <FilePlus size={18} className="text-blue-600" />
-                        <span>Tambah Format B</span>
-                    </button>
+                    {onAdd ? (
+                        <button
+                            onClick={onAdd}
+                            className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 rounded-xl hover:bg-orange-700 transition-all shadow-md shadow-orange-100 font-medium text-sm"
+                        >
+                            <PlusCircle size={18} />
+                            <span>{addText || "Tambah Data"}</span>
+                        </button>
+                    ) : (
+                        <>
+                            {onAddType1 && (
+                                <button
+                                    onClick={onAddType1}
+                                    className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2.5 rounded-xl hover:bg-orange-700 transition-all shadow-md shadow-orange-100 font-medium text-sm"
+                                >
+                                    <PlusCircle size={18} />
+                                    <span>Tambah Format A</span>
+                                </button>
+                            )}
+                            {onAddType2 && (
+                                <button
+                                    onClick={onAddType2}
+                                    className="flex items-center gap-2 bg-white text-orange-600 border border-orange-200 px-4 py-2.5 rounded-xl hover:bg-orange-50 transition-all font-medium text-sm"
+                                >
+                                    <FilePlus size={18} className="text-orange-600" />
+                                    <span>Tambah Format B</span>
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -71,7 +96,7 @@ export default function RegistrationTable({
                     <input
                         type="text"
                         placeholder={`Cari berdasarkan ${filterBy === 'hal' ? 'perihal' : 'nomor surat'}...`}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -117,14 +142,51 @@ export default function RegistrationTable({
                                         {columns.map((col) => (
                                             <td key={col.key} className="px-6 py-4">
                                                 <div className="text-sm text-gray-700 font-medium capitalize">
-                                                    {row[col.key]}
+                                                    {col.key === 'status' ? (
+                                                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${row[col.key] === 'Menunggu' || row[col.key] === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                                row[col.key] === 'Disetujui' || row[col.key] === 'approved' ? 'bg-green-100 text-green-700' :
+                                                                    row[col.key] === 'Ditolak' || row[col.key] === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                                        'bg-gray-100 text-gray-700'
+                                                            }`}>
+                                                            {row[col.key]}
+                                                        </span>
+                                                    ) : col.key.startsWith('file') && row[col.key] ? (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                window.open(row[col.key].startsWith('http') ? row[col.key] : `http://127.0.0.1:8000/storage/${row[col.key]}`, '_blank')
+                                                            }}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors text-xs font-semibold"
+                                                            title={row[col.key]}
+                                                        >
+                                                            <Download size={14} />
+                                                            Lihat File
+                                                        </button>
+                                                    ) : (
+                                                        row[col.key]
+                                                    )}
                                                 </div>
                                             </td>
                                         ))}
                                         <td className="px-6 py-4 text-right">
-                                            <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
-                                                <MoreVertical size={18} />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => onEdit && onEdit(row)}
+                                                    className={`p-2 rounded-lg transition-colors ${onEdit ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}
+                                                    title="Edit"
+                                                    disabled={!onEdit}
+                                                >
+                                                    <Edit size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => onDelete && onDelete(row)}
+                                                    className={`p-2 rounded-lg transition-colors ${onDelete ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-gray-50 text-gray-300 cursor-not-allowed'}`}
+                                                    title="Hapus"
+                                                    disabled={!onDelete}
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -147,7 +209,7 @@ export default function RegistrationTable({
                             <ChevronLeft size={18} />
                         </button>
                         <div className="flex items-center gap-1">
-                            <span className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded-lg text-xs font-bold shadow-sm">1</span>
+                            <span className="w-8 h-8 flex items-center justify-center bg-orange-600 text-white rounded-lg text-xs font-bold shadow-sm">1</span>
                             <span className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-medium cursor-pointer">2</span>
                         </div>
                         <button className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">

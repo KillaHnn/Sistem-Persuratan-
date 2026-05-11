@@ -8,8 +8,9 @@ import {
   XCircle,
   Search,
   Filter,
-  MoreVertical,
-  Plus
+  Plus,
+  Edit,
+  Trash2
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -18,7 +19,7 @@ export default function DashboardPage() {
 
   // Mock data for statistics
   const stats = [
-    { title: "Total Surat", value: "12", icon: FileText, color: "bg-blue-500" },
+    { title: "Total Surat", value: "12", icon: FileText, color: "bg-orange-500" },
     { title: "Menunggu", value: "4", icon: Clock, color: "bg-yellow-500" },
     { title: "Disetujui", value: "6", icon: CheckCircle, color: "bg-green-500" },
     { title: "Ditolak", value: "2", icon: XCircle, color: "bg-red-500" },
@@ -35,7 +36,7 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Diajukan": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Diajukan": return "bg-orange-100 text-orange-700 border-orange-200";
       case "Diproses": return "bg-yellow-100 text-yellow-700 border-yellow-200";
       case "Disetujui": return "bg-green-100 text-green-700 border-green-200";
       case "Ditolak": return "bg-red-100 text-red-700 border-red-200";
@@ -128,11 +129,11 @@ export default function DashboardPage() {
                   className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all bg-white"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl hidden sm:flex">
+                    <div className="p-3 bg-orange-50 text-orange-600 rounded-xl hidden sm:flex">
                       <FileText size={24} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
                         {letter.title}
                       </h3>
                       <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
@@ -149,9 +150,22 @@ export default function DashboardPage() {
                     <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(letter.status)}`}>
                       {letter.status}
                     </span>
-                    <button className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                      <MoreVertical size={18} />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleEdit(letter)}
+                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all border hover:border-orange-200"
+                        title="Edit"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(letter)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all border hover:border-red-200"
+                        title="Hapus"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -170,3 +184,17 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+const handleEdit = (letter: any) => {
+  console.log("Edit surat:", letter);
+  // TODO: Implement edit modal or navigation
+};
+
+const handleDelete = (letter: any) => {
+  if (confirm(`Yakin hapus surat "${letter.title}" (${letter.id})?`)) {
+    console.log("Delete surat:", letter);
+    // TODO: API delete and refresh data
+  }
+};
+

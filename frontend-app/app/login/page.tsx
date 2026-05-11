@@ -21,11 +21,10 @@ export default function LoginPage() {
         try {
             const trimmedIdentifier = identifier.trim();
             const isEmail = trimmedIdentifier.includes("@");
-
-            // ✅ Kirim field yang tepat + role sesuai jenis identifier
+            
             const loginData = isEmail
-                ? { email: trimmedIdentifier, password, role: "mahasiswa" }
-                : { username: trimmedIdentifier, password, role: "admin" };
+                ? { email: trimmedIdentifier, password, }
+                : { username: trimmedIdentifier, password, };
 
             const res = await fetch("/api/login", {
                 method: "POST",
@@ -201,7 +200,7 @@ export default function LoginPage() {
 
                     <div className="mt-10 text-center flex flex-col items-center gap-4">
                         <p className="text-sm text-gray-400 font-medium">
-                            © 2026 Sistem Persuratan Digital • v1.0.0
+                            © 2026 SSMI • v1.0.0
                         </p>
                         <div className="flex gap-6 mt-2">
                             <a href="#" className="text-xs font-bold text-gray-400 hover:text-orange-600 transition-colors uppercase tracking-widest">Bantuan</a>

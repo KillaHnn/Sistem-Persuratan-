@@ -183,14 +183,14 @@ export default function ProfilePage() {
                                     <h1 className="text-2xl font-bold text-gray-900">Profil Admin</h1>
                                     <p className="text-gray-500 text-sm mt-1">Kelola data diri administrator</p>
                                 </div>
-                                {!isEditing && (
+                                {/* {!isEditing && (
                                     <button
                                         onClick={() => setIsEditing(true)}
                                         className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 rounded-lg hover:bg-slate-100 transition"
                                     >
                                         Edit Profil
                                     </button>
-                                )}
+                                )} */}
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
