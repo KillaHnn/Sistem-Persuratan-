@@ -86,4 +86,52 @@ class AuthTest extends TestCase
         // This should return 422 because the middleware requires 'email' for mahasiswa
         $response->assertStatus(422);
     }
+
+    public function test_login_without_role_using_email()
+    {
+        $user = User::factory()->mahasiswa()->create([
+            'email' => 'mhs@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'mhs@example.com',
+            'password' => 'password',
+        ]);
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure(['access_token', 'user']);
+    }
+
+    public function test_login_without_role_using_username()
+    {
+        $user = User::factory()->admin()->create([
+            'username' => 'adminuser',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'username' => 'adminuser',
+            'password' => 'password',
+        ]);
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure(['access_token', 'user']);
+    }
+
+    public function test_login_fails_if_mahasiswa_uses_username_without_role()
+    {
+        $user = User::factory()->mahasiswa()->create([
+            'username' => 'mhsuser',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'username' => 'mhsuser',
+            'password' => 'password',
+        ]);
+
+        // Should fail because AuthController restricts mahasiswa to Email
+        $response->assertStatus(403);
+    }
 }
