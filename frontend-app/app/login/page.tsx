@@ -45,13 +45,19 @@ export default function LoginPage() {
                     admin: "/admins/dashboard",
                     div_sekolah: "/div_sekolah/dashboard",
                     div_prodi: "/div_prodi/dashboard",
-                    mahasiswa: "/mahasiswa/dashboard"
+                    mahasiswa: "/mahasiswa/dashboard",
+                    pemohon: "/umum/dashboard",
+                    sekretariat: "/umum/dashboard",
+                    kabag_tu: "/umum/dashboard",
+                    wakil_dekan: "/umum/dashboard",
+                    dekan: "/umum/dashboard"
                 };
 
                 if (routes[role]) {
                     router.push(routes[role]);
                 } else {
-                    setError("Role tidak dikenali.");
+                    console.log("Role received:", role);
+                    setError("Role (" + role + ") tidak dikenali atau belum memiliki dashboard.");
                 }
             } else {
                 setError(data.message || "Login gagal.");

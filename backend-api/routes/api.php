@@ -33,4 +33,36 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::group(['middleware' => ['role:admin']], function () {
         Route::apiResource('users', \App\Http\Controllers\KelolaUserController::class);
     });
+
+    // ── AUTH: Logout ─────────────────────────────────
+    Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    // ── PERSURATAN UMUM (Module Baru) ────────────────
+    Route::prefix('umum')->group(function () {
+
+        // Surat CRUD
+        Route::apiResource('surat', \App\Http\Controllers\SuratUmumController::class);
+
+        // Alur Approval
+        Route::prefix('surat/{id}')->group(function () {
+            Route::post('proses',       [\App\Http\Controllers\ApprovalController::class, 'proses']);
+            Route::post('verifikasi',   [\App\Http\Controllers\ApprovalController::class, 'verifikasi']);
+            Route::post('kembalikan',   [\App\Http\Controllers\ApprovalController::class, 'kembalikan']);
+            Route::post('paraf',        [\App\Http\Controllers\ApprovalController::class, 'paraf']);
+            Route::post('tandatangan',  [\App\Http\Controllers\ApprovalController::class, 'tandatangan']);
+            Route::post('arsip',        [\App\Http\Controllers\ArsipSuratController::class, 'store']);
+
+            // Dokumen per surat
+            Route::get('dokumen',  [\App\Http\Controllers\DokumenSuratController::class, 'index']);
+            Route::post('dokumen', [\App\Http\Controllers\DokumenSuratController::class, 'store']);
+        });
+
+        // Notifikasi
+        Route::get('notifikasi',              [\App\Http\Controllers\NotifikasiSuratController::class, 'index']);
+        Route::patch('notifikasi/{nid}/read', [\App\Http\Controllers\NotifikasiSuratController::class, 'markRead']);
+        Route::post('notifikasi/read-all',    [\App\Http\Controllers\NotifikasiSuratController::class, 'markAllRead']);
+
+        // Arsip
+        Route::get('arsip', [\App\Http\Controllers\ArsipSuratController::class, 'index']);
+    });
 });

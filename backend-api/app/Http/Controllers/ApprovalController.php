@@ -1,0 +1,214 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\SuratUmum;
+use App\Models\ApprovalLog;
+use App\Models\NotifikasiSurat;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class ApprovalController extends Controller
+{
+    /**
+     * Sekretariat memproses surat (menunggu → diproses).
+     */
+    public function proses($id)
+    {
+        $surat = SuratUmum::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'sekretariat') {
+            return response()->json(['message' => 'Hanya sekretariat yang dapat memproses surat'], 403);
+        }
+
+        if (!in_array($surat->status, ['menunggu', 'dikembalikan'])) {
+            return response()->json(['message' => 'Surat tidak dalam status yang dapat diproses'], 422);
+        }
+
+        $surat->update([
+            'status'     => 'diproses',
+            'handler_id' => $user->id,
+        ]);
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'disetujui',
+            'catatan'       => 'Surat mulai diproses oleh sekretariat',
+        ]);
+
+        return response()->json([
+            'message' => 'Surat berhasil diproses',
+            'data'    => $surat->fresh(['pemohon', 'handler']),
+        ]);
+    }
+
+    /**
+     * Kabag TU memverifikasi draft (diproses → diverifikasi).
+     */
+    public function verifikasi(Request $request, $id)
+    {
+        $surat = SuratUmum::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'kabag_tu') {
+            return response()->json(['message' => 'Hanya Kabag TU yang dapat memverifikasi'], 403);
+        }
+
+        if ($surat->status !== 'diproses') {
+            return response()->json(['message' => 'Surat harus berstatus diproses untuk diverifikasi'], 422);
+        }
+
+        $surat->update(['status' => 'diverifikasi']);
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'disetujui',
+            'catatan'       => $request->input('catatan', 'Draft diverifikasi oleh Kabag TU'),
+        ]);
+
+        // Notifikasi ke wakil dekan & dekan
+        $pejabats = \App\Models\User::whereIn('role', ['wakil_dekan', 'dekan'])->get();
+        foreach ($pejabats as $pejabat) {
+            NotifikasiSurat::create([
+                'surat_umum_id' => $surat->id,
+                'user_id'       => $pejabat->id,
+                'judul'         => 'Surat Siap Ditinjau',
+                'pesan'         => "Surat {$surat->jenis_surat}: {$surat->perihal} telah diverifikasi Kabag TU",
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Surat berhasil diverifikasi',
+            'data'    => $surat->fresh(),
+        ]);
+    }
+
+    /**
+     * Kabag TU mengembalikan draft untuk revisi (diproses → dikembalikan).
+     */
+    public function kembalikan(Request $request, $id)
+    {
+        $request->validate([
+            'catatan' => 'required|string|min:5',
+        ]);
+
+        $surat = SuratUmum::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'kabag_tu') {
+            return response()->json(['message' => 'Hanya Kabag TU yang dapat mengembalikan surat'], 403);
+        }
+
+        if ($surat->status !== 'diproses') {
+            return response()->json(['message' => 'Surat harus berstatus diproses untuk dikembalikan'], 422);
+        }
+
+        $surat->update([
+            'status'    => 'dikembalikan',
+            'revisi_ke' => $surat->revisi_ke + 1,
+        ]);
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'dikembalikan',
+            'catatan'       => $request->catatan,
+        ]);
+
+        // Notifikasi ke sekretariat (handler)
+        if ($surat->handler_id) {
+            NotifikasiSurat::create([
+                'surat_umum_id' => $surat->id,
+                'user_id'       => $surat->handler_id,
+                'judul'         => 'Surat Dikembalikan',
+                'pesan'         => "Surat {$surat->perihal} dikembalikan: {$request->catatan}",
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Surat dikembalikan untuk revisi',
+            'data'    => $surat->fresh(),
+        ]);
+    }
+
+    /**
+     * Wakil Dekan memberi paraf (diverifikasi → tetap diverifikasi, tercatat di log).
+     */
+    public function paraf(Request $request, $id)
+    {
+        $surat = SuratUmum::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'wakil_dekan') {
+            return response()->json(['message' => 'Hanya Wakil Dekan yang dapat memberi paraf'], 403);
+        }
+
+        if ($surat->status !== 'diverifikasi') {
+            return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk diparaf'], 422);
+        }
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'diparaf',
+            'catatan'       => $request->input('catatan', 'Diparaf oleh Wakil Dekan'),
+        ]);
+
+        return response()->json([
+            'message' => 'Paraf berhasil diberikan',
+            'data'    => $surat->fresh(['approvalLogs.approver']),
+        ]);
+    }
+
+    /**
+     * Dekan menandatangani surat (diverifikasi → ditandatangani).
+     */
+    public function tandatangan(Request $request, $id)
+    {
+        $surat = SuratUmum::findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'dekan') {
+            return response()->json(['message' => 'Hanya Dekan yang dapat menandatangani'], 403);
+        }
+
+        if ($surat->status !== 'diverifikasi') {
+            return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk ditandatangani'], 422);
+        }
+
+        $surat->update(['status' => 'ditandatangani']);
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'ditandatangani',
+            'catatan'       => $request->input('catatan', 'Ditandatangani oleh Dekan'),
+        ]);
+
+        // Notifikasi ke sekretariat untuk arsip
+        if ($surat->handler_id) {
+            NotifikasiSurat::create([
+                'surat_umum_id' => $surat->id,
+                'user_id'       => $surat->handler_id,
+                'judul'         => 'Surat Ditandatangani',
+                'pesan'         => "Surat {$surat->perihal} telah ditandatangani Dekan, siap diarsipkan",
+            ]);
+        }
+
+        // Notifikasi ke pemohon
+        NotifikasiSurat::create([
+            'surat_umum_id' => $surat->id,
+            'user_id'       => $surat->pemohon_id,
+            'judul'         => 'Surat Selesai Ditandatangani',
+            'pesan'         => "Surat {$surat->perihal} telah ditandatangani oleh Dekan",
+        ]);
+
+        return response()->json([
+            'message' => 'Surat berhasil ditandatangani',
+            'data'    => $surat->fresh(),
+        ]);
+    }
+}
