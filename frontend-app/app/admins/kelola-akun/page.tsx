@@ -10,7 +10,7 @@ import {
     User,
     CheckCircle,
     XCircle,
-    Loader2
+    Loader2,
 } from "lucide-react";
 
 // Updated Data Interface based on API Response
@@ -29,6 +29,8 @@ export default function KelolaAkunPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [roleFilter, setRoleFilter] = useState("");
+    
 
     useEffect(() => {
         fetchUsers();
@@ -108,14 +110,20 @@ export default function KelolaAkunPage() {
                     />
                 </div>
 
-                <div className="flex gap-2">
-                    <button
-                        onClick={fetchUsers}
-                        className="px-4 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-xl transition-colors border border-orange-100"
+                    <div className="flex gap-2">
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-600 bg-white"
                     >
-                        Refresh
-                    </button>
+                        <option value="">Semua Role</option>
+                        <option value="admin">Admin</option>
+                        <option value="mahasiswa">Mahasiswa</option>
+                        <option value="dosen">Dosen</option>
+                    </select>
+                    
                 </div>
+
             </div>
 
             {/* Users Table */}
