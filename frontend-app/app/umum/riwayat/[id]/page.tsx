@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     FileText, Clock, CheckCircle, RotateCcw, Archive,
-    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip
+    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
     menunggu:       { label: "Menunggu",       color: "text-yellow-700",  bg: "bg-yellow-100" },
     diproses:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
-    dikembalikan:   { label: "Dikembalikan",   color: "text-orange-700",  bg: "bg-orange-100" },
+    dikembalikan:   { label: "Dikembalikan",   color: "text-red-700",     bg: "bg-red-100" },
     diverifikasi:   { label: "Diverifikasi",   color: "text-purple-700",  bg: "bg-purple-100" },
     ditandatangani: { label: "Ditandatangani", color: "text-green-700",   bg: "bg-green-100" },
     diarsipkan:     { label: "Diarsipkan",     color: "text-gray-700",    bg: "bg-gray-100" },
@@ -40,6 +40,26 @@ export default function DetailSuratPage() {
     const [surat, setSurat] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<any>(null)
+    const [actionLoading, setActionLoading] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [catatan, setCatatan] = useState("");
+    const [showRejectModal, setRejectModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+
+    useEffect(() =>{
+        if(typeof window !== "undefined"){
+            const u = localStorage.getItem("user");
+            if (u){
+                try {
+                    setUser(JSON.parse(u));
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+    }, []);
 
     const getToken = () => {
         if (typeof window !== "undefined") {
@@ -65,6 +85,41 @@ export default function DetailSuratPage() {
         };
         fetchDetail();
     }, [params.id]);
+
+    const handleApprovalAction = async (action: "proses" | "verifikasi" | "kembalikan" | "paraf" | "tandatangan" | "arsip") => {
+        setActionLoading(true);
+        setActionError(null);
+        try {
+            const token = getToken();
+            const body = action === "kembalikan" ? JSON.stringify({ catatan }) : null;
+
+            const res = await fetch(`http://127.0.0.1:8000/api/umum/surat/${params.id}/${action}`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: body,
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Gagal memproses aksi.");
+
+            setSurat(data.data);
+            setCatatan("");
+            setRejectModal(false);
+            
+            // Tampilkan pop up sukses
+            setSuccessMessage(`Surat berhasil diproses dengan aksi: ${action}`);
+            setShowSuccessModal(true);
+            setTimeout(() => setShowSuccessModal(false), 3000);
+        } catch (e: any) {
+            setActionError(e.message);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     const formatDate = (d: string) =>
         new Date(d).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -93,7 +148,6 @@ export default function DetailSuratPage() {
     const statusInfo = STATUS_MAP[surat.status] || { label: surat.status, color: "text-gray-700", bg: "bg-gray-100" };
     const detail = surat.detail_undangan || surat.detail_surat_tugas || surat.detail_surat_pengantar ||
         surat.detail_surat_keterangan_umum || surat.detail_surat_lainnya;
-
     return (
         <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500">
             {/* Back */}
@@ -150,6 +204,166 @@ export default function DetailSuratPage() {
                 </div>
             </div>
 
+            {/* Notice Penolakan */}
+            {surat.status === "dikembalikan" && (
+                <div className="bg-red-50 border border-red-200 rounded-3xl p-6 flex items-start gap-4">
+                    <div className="p-3 bg-red-100 text-red-600 rounded-2xl shrink-0">
+                        <AlertCircle size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-red-800 font-bold text-lg mb-1">Permohonan Dikembalikan / Ditolak</h3>
+                        <p className="text-red-600 text-sm">
+                            Surat ini telah dikembalikan dan tidak dapat dilanjutkan prosesnya. Silakan buat permohonan baru jika diperlukan.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Panel Tindakan Validasi */}
+            {user && surat.status !== "dikembalikan" && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-4">
+                    <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
+                    
+                    {actionError && (
+                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start gap-2">
+                            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                            <p>{actionError}</p>
+                        </div>
+                    )}
+                    
+                    {/* 1. SELEKSI UNTUK SEKRETARIAT */}
+                    {user.role === "sekretariat" && (
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {surat.status === "menunggu" && (
+                                <>
+                                    <button
+                                        onClick={() => handleApprovalAction("proses")}
+                                        disabled={actionLoading}
+                                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    >
+                                        {actionLoading ? "Memproses..." : "Verifikasi (Setujui)"}
+                                    </button>
+                                    <button
+                                        onClick={() => setRejectModal(true)}
+                                        disabled={actionLoading}
+                                        className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    >
+                                        Kembalikan (Tolak)
+                                    </button>
+                                </>
+                            )}
+                            
+                            {surat.status === "ditandatangani" && (
+                                <button
+                                    onClick={() => handleApprovalAction("arsip")}
+                                    disabled={actionLoading}
+                                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                >
+                                    {actionLoading ? "Memproses..." : "Arsipkan Surat"}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 2. SELEKSI UNTUK KABAG TU */}
+                    {user.role === "kabag_tu" && surat.status === "diproses" && (
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={() => handleApprovalAction("verifikasi")}
+                                disabled={actionLoading}
+                                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                            >
+                                Verifikasi (Setujui)
+                            </button>
+                            
+                            <button
+                                onClick={() => setRejectModal(true)}
+                                disabled={actionLoading}
+                                className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                            >
+                                Kembalikan (Revisi / Tolak)
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 3. SELEKSI UNTUK WAKIL DEKAN */}
+                    {user.role === "wakil_dekan" && surat.status === "diverifikasi" && (
+                        <button
+                            onClick={() => handleApprovalAction("paraf")}
+                            disabled={actionLoading}
+                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                        >
+                            Beri Paraf Surat
+                        </button>
+                    )}
+
+                    {/* 4. SELEKSI UNTUK DEKAN */}
+                    {user.role === "dekan" && surat.status === "diverifikasi" && (
+                        <button
+                            onClick={() => handleApprovalAction("tandatangan")}
+                            disabled={actionLoading}
+                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                        >
+                            Tandatangani Surat
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Modal Input Catatan Penolakan (Kembalikan) */}
+            {showRejectModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-900">Alasan Pengembalian / Revisi</h3>
+                        <p className="text-sm text-gray-500">
+                            Berikan catatan detail mengapa surat ini dikembalikan agar pemohon/sekretariat dapat merevisinya.
+                        </p>
+                        <textarea
+                            value={catatan}
+                            onChange={(e) => setCatatan(e.target.value)}
+                            placeholder="Tulis alasan minimal 5 karakter..."
+                            className="w-full p-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 h-28"
+                        />
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setRejectModal(false)}
+                                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => handleApprovalAction("kembalikan")}
+                                disabled={catatan.trim().length < 5 || actionLoading}
+                                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition disabled:opacity-50"
+                            >
+                                Kirim Catatan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Sukses (In-app popup) */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in zoom-in duration-300">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full flex flex-col items-center text-center space-y-4 shadow-2xl">
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
+                            <CheckCircle size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">Berhasil!</h3>
+                        <p className="text-gray-500 text-sm">
+                            {successMessage}
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            className="w-full mt-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Progress Tracker */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-base font-bold text-gray-800 mb-6">Progres Persetujuan</h2>
@@ -168,7 +382,7 @@ export default function DetailSuratPage() {
                                 <div key={step.status} className="flex items-start gap-5">
                                     <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
                                         isCurrent && surat.status === "dikembalikan"
-                                            ? "border-orange-500 bg-orange-100"
+                                            ? "border-red-500 bg-red-100"
                                             : isDone
                                                 ? "border-green-400 bg-green-400"
                                                 : "border-gray-200 bg-white"
@@ -176,7 +390,7 @@ export default function DetailSuratPage() {
                                         {isDone && surat.status !== "dikembalikan"
                                             ? <CheckCircle size={16} className="text-white" />
                                             : isCurrent && surat.status === "dikembalikan"
-                                                ? <RotateCcw size={14} className="text-orange-500" />
+                                                ? <RotateCcw size={14} className="text-red-500" />
                                                 : <span className="w-2 h-2 rounded-full bg-gray-300" />
                                         }
                                     </div>
@@ -231,7 +445,7 @@ export default function DetailSuratPage() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="text-sm font-semibold text-gray-800">{log.approver?.name}</span>
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                            log.aksi === "dikembalikan" ? "bg-orange-100 text-orange-600"
+                                            log.aksi === "dikembalikan" ? "bg-red-100 text-red-600"
                                             : log.aksi === "ditandatangani" ? "bg-green-100 text-green-600"
                                             : "bg-blue-100 text-blue-600"
                                         }`}>

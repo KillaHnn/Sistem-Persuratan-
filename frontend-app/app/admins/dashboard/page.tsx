@@ -108,17 +108,17 @@ export default function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-0.5 group cursor-default">
                         <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-xl ${stat.lightColor} ${stat.textColor}`}>
-                                <stat.icon size={24} />
+                            <div className={`w-12 h-12 flex items-center justify-center rounded-xl ${stat.color} shadow-md group-hover:scale-105 transition-transform`}>
+                                <stat.icon size={24} className="text-white" />
                             </div>
                             <span className={`text-xs font-semibold px-2 py-1 rounded-full ${stat.trend.startsWith('+') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                                 {stat.trend}
                             </span>
                         </div>
                         <h3 className="text-3xl font-bold text-gray-800 mb-1">{stat.value}</h3>
-                        <p className="text-sm text-gray-500">{stat.title}</p>
+                        <p className={`text-sm font-semibold ${stat.textColor}`}>{stat.title}</p>
                     </div>
                 ))}
             </div>

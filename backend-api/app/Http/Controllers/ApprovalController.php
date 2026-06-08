@@ -98,12 +98,16 @@ class ApprovalController extends Controller
         $surat = SuratUmum::findOrFail($id);
         $user = Auth::user();
 
-        if ($user->role !== 'kabag_tu') {
-            return response()->json(['message' => 'Hanya Kabag TU yang dapat mengembalikan surat'], 403);
+        if (!in_array($user->role, ['kabag_tu', 'sekretariat'])) {
+            return response()->json(['message' => 'Anda tidak memiliki akses mengembalikan surat'], 403);
         }
 
-        if ($surat->status !== 'diproses') {
-            return response()->json(['message' => 'Surat harus berstatus diproses untuk dikembalikan'], 422);
+        if ($user->role === 'kabag_tu' && $surat->status !== 'diproses') {
+            return response()->json(['message' => 'Surat harus berstatus diproses untuk dikembalikan oleh Kabag TU'], 422);
+        }
+
+        if ($user->role === 'sekretariat' && !in_array($surat->status, ['menunggu'])) {
+            return response()->json(['message' => 'Surat harus berstatus menunggu untuk dikembalikan oleh Sekretariat'], 422);
         }
 
         $surat->update([
