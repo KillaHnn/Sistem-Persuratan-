@@ -75,7 +75,7 @@ class PersuratanUmumSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['username' => $userData['username']],
                 $userData
-            ); 
+            );
             $user->assignRole($role);
         }
     }

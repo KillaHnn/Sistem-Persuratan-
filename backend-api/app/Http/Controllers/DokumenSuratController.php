@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\DokumenSurat;
+use App\Models\SuratUmum;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class DokumenSuratController extends Controller
+{
+    /**
+     * List semua dokumen untuk surat tertentu.
+     */
+    public function index($suratId)
+    {
+        $surat = SuratUmum::findOrFail($suratId);
+
+        $dokumens = $surat->dokumens()
+            ->with('uploader')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($dokumens);
+    }
+
+    /**
+     * Upload dokumen baru untuk surat.
+     */
+    public function store(Request $request, $suratId)
+    {
+        $request->validate([
+            'file'          => 'required|file|max:10240', // max 10MB
+            'tipe_dokumen'  => 'required|in:draft,draft_revisi,surat_paraf,surat_ttd',
+        ]);
+
+        $surat = SuratUmum::findOrFail($suratId);
+
+        // Hitung versi berikutnya
+        $latestVersion = $surat->dokumens()
+            ->where('tipe_dokumen', $request->tipe_dokumen)
+            ->max('versi') ?? 0;
+
+        $file = $request->file('file');
+        $path = $file->store("dokumen-surat/{$suratId}", 'public');
+
+        $dokumen = DokumenSurat::create([
+            'surat_umum_id' => $surat->id,
+            'tipe_dokumen'  => $request->tipe_dokumen,
+            'nama_file'     => $file->getClientOriginalName(),
+            'path_file'     => $path,
+            'versi'         => $latestVersion + 1,
+            'uploaded_by'   => Auth::id(),
+        ]);
+
+        return response()->json([
+            'message' => 'Dokumen berhasil diupload',
+            'data'    => $dokumen->load('uploader'),
+        ], 201);
+    }
+}
