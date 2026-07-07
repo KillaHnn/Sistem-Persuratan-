@@ -121,7 +121,14 @@ class SuratUmumController extends Controller
      */
     public function show($id)
     {
-        $surat = SuratUmum::with(['pemohon', 'handler', 'approvalLogs.approver', 'dokumens'])
+                $surat = SuratUmum::with([
+            'pemohon',
+            'handler',
+            'approvalLogs.approver',
+            'dokumens' => function ($q) {
+                $q->whereNotIn('tipe_dokumen', ['draft', 'draft_revisi']);
+            },
+        ])
             ->findOrFail($id);
 
         $this->loadDetail($surat);

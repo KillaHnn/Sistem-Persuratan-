@@ -86,21 +86,45 @@ export default function DetailSuratPage() {
         fetchDetail();
     }, [params.id]);
 
-    const handleApprovalAction = async (action: "proses" | "verifikasi" | "kembalikan" | "paraf" | "tandatangan" | "arsip") => {
+    
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [pendingAction, setPendingAction] = useState<string | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] ?? null;
+        setSelectedFile(file);
+        if (pendingAction && file) {
+            submitAction(pendingAction, file);
+        }
+    };
+
+    const submitAction = async (action: string, file?: File) => {
         setActionLoading(true);
         setActionError(null);
         try {
             const token = getToken();
-            const body = action === "kembalikan" ? JSON.stringify({ catatan }) : null;
+            let body: any = null;
+            let headers: any = {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            };
+            if (file) {
+                const form = new FormData();
+                form.append("file", file);
+                if (action === "kembalikan") {
+                    form.append("catatan", catatan);
+                }
+                body = form;
+                // Note: fetch will set correct multipart headers automatically
+            } else if (action === "kembalikan") {
+                body = JSON.stringify({ catatan });
+                headers["Content-Type"] = "application/json";
+            }
 
             const res = await fetch(`http://127.0.0.1:8000/api/umum/surat/${params.id}/${action}`, {
                 method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                },
-                body: body,
+                headers,
+                body,
             });
 
             const data = await res.json();
@@ -109,8 +133,6 @@ export default function DetailSuratPage() {
             setSurat(data.data);
             setCatatan("");
             setRejectModal(false);
-            
-            // Tampilkan pop up sukses
             setSuccessMessage(`Surat berhasil diproses dengan aksi: ${action}`);
             setShowSuccessModal(true);
             setTimeout(() => setShowSuccessModal(false), 3000);
@@ -118,8 +140,23 @@ export default function DetailSuratPage() {
             setActionError(e.message);
         } finally {
             setActionLoading(false);
+            setPendingAction(null);
+            setSelectedFile(null);
         }
     };
+
+    const handleApprovalAction = (action: "proses" | "verifikasi" | "kembalikan" | "paraf" | "tandatangan" | "arsip") => {
+        // Actions requiring file upload
+        if (["proses", "paraf", "tandatangan"].includes(action)) {
+            setPendingAction(action);
+            // trigger hidden file input
+            const fileInput = document.getElementById("file-upload-input");
+            fileInput?.click();
+        } else {
+            submitAction(action);
+        }
+    };
+
 
     const formatDate = (d: string) =>
         new Date(d).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -368,6 +405,8 @@ export default function DetailSuratPage() {
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-base font-bold text-gray-800 mb-6">Progres Persetujuan</h2>
                 <div className="relative">
+                    {/* Hidden file input for upload actions */}
+                    <input type="file" id="file-upload-input" className="hidden" accept=".pdf,.docx" onChange={handleFileChange} />
                     {/* Vertical line */}
                     <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-100" />
 

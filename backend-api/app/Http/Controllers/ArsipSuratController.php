@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArsipSurat;
+use App\Models\DokumenSurat;
 use App\Models\NotifikasiSurat;
 use App\Models\SuratUmum;
 use Illuminate\Http\Request;
@@ -34,17 +35,22 @@ class ArsipSuratController extends Controller
 
     /**
      * Arsipkan surat yang sudah ditandatangani (ditandatangani → diarsipkan).
+     * path_digital otomatis diambil dari dokumen surat_ttd terbaru.
      */
     public function store(Request $request, $suratId)
     {
-        $request->validate([
-            'nomor_arsip'   => 'required|string|unique:arsip_surats,nomor_arsip',
-            'nomor_surat'   => 'required|string|unique:surat_umum,nomor_surat',
-            'lokasi_fisik'  => 'nullable|string',
-            'path_digital'  => 'required|string',
-        ]);
+                $request->validate([
+                    'nomor_arsip'   => 'nullable|string|unique:arsip_surats,nomor_arsip',
+                    // nomor_surat optional; if not supplied use existing surat nomor
+                    'nomor_surat'   => 'sometimes|string|unique:surat_umum,nomor_surat',
+                    'lokasi_fisik'  => 'nullable|string',
+                ]);
 
         $surat = SuratUmum::findOrFail($suratId);
+        
+        // Jika nomor_surat tidak disertakan, pakai nomor surat yang sudah ada
+        $nomorSurat = $request->input('nomor_surat', $surat->nomor_surat);
+
         $user = Auth::user();
 
         if ($user->role !== 'sekretariat') {
@@ -55,11 +61,24 @@ class ArsipSuratController extends Controller
             return response()->json(['message' => 'Hanya surat yang sudah ditandatangani yang dapat diarsipkan'], 422);
         }
 
+        // Ambil path digital dari dokumen surat_ttd terbaru
+        $dokumenTtd = $surat->dokumens()
+            ->where('tipe_dokumen', 'surat_ttd')
+            ->orderBy('versi', 'desc')
+            ->first();
+
+        if (!$dokumenTtd) {
+            return response()->json(['message' => 'Dokumen surat yang telah ditandatangani belum diunggah'], 422);
+        }
+
         // Update surat
         $surat->update([
             'status'      => 'diarsipkan',
-            'nomor_surat' => $request->nomor_surat,
-            'tgl_selesai'  => now(),
+            // Use provided nomor_arsip if present, otherwise null
+            'nomor_arsip' => $request->input('nomor_arsip'),
+            // Use fallback nomorSurat if nomor_surat not supplied
+            'nomor_surat' => $nomorSurat,
+            'tgl_selesai' => now(),
         ]);
 
         // Buat arsip
@@ -67,9 +86,12 @@ class ArsipSuratController extends Controller
             'surat_umum_id' => $surat->id,
             'nomor_arsip'   => $request->nomor_arsip,
             'lokasi_fisik'  => $request->lokasi_fisik,
-            'path_digital'  => $request->path_digital,
+            'path_digital'  => $dokumenTtd->path_file,
             'dibuat_oleh'   => $user->id,
+            // gunakan nomor surat yang sudah dipastikan ada
+            'nomor_surat'   => $nomorSurat,
         ]);
+
 
         // Notifikasi ke pemohon
         NotifikasiSurat::create([

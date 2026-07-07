@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SuratUmum;
 use App\Models\ApprovalLog;
+use App\Models\DokumenSurat;
 use App\Models\NotifikasiSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,9 +13,14 @@ class ApprovalController extends Controller
 {
     /**
      * Sekretariat memproses surat (menunggu → diproses).
+     * Wajib upload file draf surat.
      */
-    public function proses($id)
+    public function proses(Request $request, $id)
     {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,docx|max:10240',
+        ]);
+
         $surat = SuratUmum::findOrFail($id);
         $user = Auth::user();
 
@@ -25,6 +31,26 @@ class ApprovalController extends Controller
         if (!in_array($surat->status, ['menunggu', 'dikembalikan'])) {
             return response()->json(['message' => 'Surat tidak dalam status yang dapat diproses'], 422);
         }
+
+        // Tentukan tipe dokumen berdasarkan revisi
+        $tipeDokumen = $surat->revisi_ke > 0 ? 'draft_revisi' : 'draft';
+
+        // Upload file draf
+        $file = $request->file('file');
+        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
+
+        $latestVersion = $surat->dokumens()
+            ->where('tipe_dokumen', $tipeDokumen)
+            ->max('versi') ?? 0;
+
+        DokumenSurat::create([
+            'surat_umum_id' => $surat->id,
+            'tipe_dokumen'  => $tipeDokumen,
+            'nama_file'     => $file->getClientOriginalName(),
+            'path_file'     => $path,
+            'versi'         => $latestVersion + 1,
+            'uploaded_by'   => $user->id,
+        ]);
 
         $surat->update([
             'status'     => 'diproses',
@@ -40,7 +66,7 @@ class ApprovalController extends Controller
 
         return response()->json([
             'message' => 'Surat berhasil diproses',
-            'data'    => $surat->fresh(['pemohon', 'handler']),
+            'data'    => $surat->fresh(['pemohon', 'handler', 'dokumens']),
         ]);
     }
 
@@ -92,9 +118,12 @@ class ApprovalController extends Controller
     public function kembalikan(Request $request, $id)
     {
         $request->validate([
-            'catatan' => 'required|string|min:5',
+            'nomor_arsip'   => 'required|string|unique:arsip_surats,nomor_arsip',
+            // nomor_surat optional; if provided, must be unique
+            'nomor_surat'   => 'sometimes|string|unique:surat_umum,nomor_surat',
+            'lokasi_fisik'  => 'nullable|string',
         ]);
-
+        
         $surat = SuratUmum::findOrFail($id);
         $user = Auth::user();
 
@@ -110,6 +139,12 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Surat harus berstatus menunggu untuk dikembalikan oleh Sekretariat'], 422);
         }
 
+        // Hapus semua dokumen draft yang ada (draft dan draft_revisi)
+        DokumenSurat::where('surat_umum_id', $surat->id)
+            ->whereIn('tipe_dokumen', ['draft', 'draft_revisi'])
+            ->delete();
+
+        // Update surat status to dikembalikan
         $surat->update([
             'status'    => 'dikembalikan',
             'revisi_ke' => $surat->revisi_ke + 1,
@@ -140,9 +175,14 @@ class ApprovalController extends Controller
 
     /**
      * Wakil Dekan memberi paraf (diverifikasi → tetap diverifikasi, tercatat di log).
+     * Wajib upload file surat yang telah diparaf.
      */
     public function paraf(Request $request, $id)
     {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
         $surat = SuratUmum::findOrFail($id);
         $user = Auth::user();
 
@@ -154,6 +194,24 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk diparaf'], 422);
         }
 
+        // Upload file surat tandatangan
+        $file = $request->file('file');
+        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
+
+        // Hapus semua dokumen draft yang ada (draft dan draft_revisi) sebelum menyimpan tandatangan
+        DokumenSurat::where('surat_umum_id', $surat->id)
+            ->whereIn('tipe_dokumen', ['draft', 'draft_revisi'])
+            ->delete();
+
+        DokumenSurat::create([
+            'surat_umum_id' => $surat->id,
+            'tipe_dokumen'  => 'surat_paraf',
+            'nama_file'     => $file->getClientOriginalName(),
+            'path_file'     => $path,
+            'versi'         => $latestVersion + 1,
+            'uploaded_by'   => $user->id,
+        ]);
+
         ApprovalLog::create([
             'surat_umum_id' => $surat->id,
             'approver_id'   => $user->id,
@@ -163,15 +221,20 @@ class ApprovalController extends Controller
 
         return response()->json([
             'message' => 'Paraf berhasil diberikan',
-            'data'    => $surat->fresh(['approvalLogs.approver']),
+            'data'    => $surat->fresh(['approvalLogs.approver', 'dokumens']),
         ]);
     }
 
     /**
      * Dekan menandatangani surat (diverifikasi → ditandatangani).
+     * Wajib upload file surat yang telah ditandatangani.
      */
     public function tandatangan(Request $request, $id)
     {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
         $surat = SuratUmum::findOrFail($id);
         $user = Auth::user();
 
@@ -182,6 +245,23 @@ class ApprovalController extends Controller
         if ($surat->status !== 'diverifikasi') {
             return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk ditandatangani'], 422);
         }
+
+        // Upload file surat TTD
+        $file = $request->file('file');
+        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
+
+        $latestVersion = $surat->dokumens()
+            ->where('tipe_dokumen', 'surat_ttd')
+            ->max('versi') ?? 0;
+
+        DokumenSurat::create([
+            'surat_umum_id' => $surat->id,
+            'tipe_dokumen'  => 'surat_ttd',
+            'nama_file'     => $file->getClientOriginalName(),
+            'path_file'     => $path,
+            'versi'         => $latestVersion + 1,
+            'uploaded_by'   => $user->id,
+        ]);
 
         $surat->update(['status' => 'ditandatangani']);
 
@@ -212,7 +292,7 @@ class ApprovalController extends Controller
 
         return response()->json([
             'message' => 'Surat berhasil ditandatangani',
-            'data'    => $surat->fresh(),
+            'data'    => $surat->fresh(['dokumens']),
         ]);
     }
 }
