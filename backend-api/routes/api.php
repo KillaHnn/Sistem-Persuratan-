@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('kembalikan',   [\App\Http\Controllers\ApprovalController::class, 'kembalikan']);
             Route::post('paraf',        [\App\Http\Controllers\ApprovalController::class, 'paraf']);
             Route::post('tandatangan',  [\App\Http\Controllers\ApprovalController::class, 'tandatangan']);
+            Route::post('kirim-ke-user',[\App\Http\Controllers\ApprovalController::class, 'kirimKeUser']);
             Route::post('arsip',        [\App\Http\Controllers\ArsipSuratController::class, 'store']);
 
             // Dokumen per surat

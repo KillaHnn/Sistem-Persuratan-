@@ -21,6 +21,11 @@ class SuratUmum extends Model
         'handler_id',
         'tgl_permohonan',
         'tgl_selesai',
+        // classification foreign keys and nomor surat reference
+        'klasifikasi_primer_id',
+        'klasifikasi_sekunder_id',
+        'klasifikasi_tersier_id',
+        'nomor_surat_id',
     ];
 
     protected $casts = [
@@ -102,5 +107,31 @@ class SuratUmum extends Model
     public function arsip(): HasOne
     {
         return $this->hasOne(ArsipSurat::class);
+    }
+
+    // ── Classification Relationships ────────────────────────
+    public function klasifikasiPrimer()
+    {
+        return $this->belongsTo(KlasifikasiPrimer::class, 'klasifikasi_primer_id');
+    }
+
+    public function klasifikasiSekunder()
+    {
+        return $this->belongsTo(KlasifikasiSekunder::class, 'klasifikasi_sekunder_id');
+    }
+
+    public function klasifikasiTersier()
+    {
+        return $this->belongsTo(KlasifikasiTersier::class, 'klasifikasi_tersier_id');
+    }
+
+    public function nomorSurat()
+    {
+        return $this->belongsTo(NomorSurat::class, 'nomor_surat_id');
+    }
+
+    public function nomorHistory()
+    {
+        return $this->hasMany(NomorSurat::class);
     }
 }

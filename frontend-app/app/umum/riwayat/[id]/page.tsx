@@ -47,6 +47,41 @@ export default function DetailSuratPage() {
     const [showRejectModal, setRejectModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
+    const [showProsesModal, setShowProsesModal] = useState(false);
+    const [klasifikasi, setKlasifikasi] = useState({ primerId: "", sekunderId: "", tersierId: "" });
+    const [primers, setPrimers] = useState<any[]>([]);
+    const [sekunders, setSekunders] = useState<any[]>([]);
+    const [tersiers, setTersiers] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (showProsesModal && primers.length === 0) {
+            fetch(`http://127.0.0.1:8000/api/klasifikasi/primer`, {
+                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
+            })
+            .then(res => res.json())
+            .then(data => setPrimers(data.data || data));
+        }
+    }, [showProsesModal]);
+
+    useEffect(() => {
+        if (klasifikasi.primerId) {
+            fetch(`http://127.0.0.1:8000/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
+                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
+            })
+            .then(res => res.json())
+            .then(data => { setSekunders(data.data || data); setKlasifikasi(prev => ({ ...prev, sekunderId: "", tersierId: "" })); setTersiers([]); });
+        }
+    }, [klasifikasi.primerId]);
+
+    useEffect(() => {
+        if (klasifikasi.sekunderId) {
+            fetch(`http://127.0.0.1:8000/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
+                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
+            })
+            .then(res => res.json())
+            .then(data => { setTersiers(data.data || data); setKlasifikasi(prev => ({ ...prev, tersierId: "" })); });
+        }
+    }, [klasifikasi.sekunderId]);
 
     useEffect(() =>{
         if(typeof window !== "undefined"){
@@ -114,6 +149,11 @@ export default function DetailSuratPage() {
                 if (action === "kembalikan") {
                     form.append("catatan", catatan);
                 }
+                if (action === "proses" && klasifikasi.primerId) {
+                    form.append("klasifikasi_primer_id", klasifikasi.primerId);
+                    form.append("klasifikasi_sekunder_id", klasifikasi.sekunderId);
+                    form.append("klasifikasi_tersier_id", klasifikasi.tersierId);
+                }
                 body = form;
                 // Note: fetch will set correct multipart headers automatically
             } else if (action === "kembalikan") {
@@ -142,12 +182,21 @@ export default function DetailSuratPage() {
             setActionLoading(false);
             setPendingAction(null);
             setSelectedFile(null);
+            setShowProsesModal(false);
         }
     };
 
-    const handleApprovalAction = (action: "proses" | "verifikasi" | "kembalikan" | "paraf" | "tandatangan" | "arsip") => {
+    const handleApprovalAction = (action: string) => {
         // Actions requiring file upload
-        if (["proses", "paraf", "tandatangan"].includes(action)) {
+        if (action === "proses") {
+            if (surat.nomor_surat_id) {
+                setPendingAction(action);
+                const fileInput = document.getElementById("file-upload-input");
+                fileInput?.click();
+            } else {
+                setShowProsesModal(true);
+            }
+        } else if (["paraf", "tandatangan"].includes(action)) {
             setPendingAction(action);
             // trigger hidden file input
             const fileInput = document.getElementById("file-upload-input");
@@ -292,11 +341,11 @@ export default function DetailSuratPage() {
                             
                             {surat.status === "ditandatangani" && (
                                 <button
-                                    onClick={() => handleApprovalAction("arsip")}
+                                    onClick={() => handleApprovalAction("kirim-ke-user")}
                                     disabled={actionLoading}
-                                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
                                 >
-                                    {actionLoading ? "Memproses..." : "Arsipkan Surat"}
+                                    {actionLoading ? "Memproses..." : "Kirim ke Pemohon & Arsipkan"}
                                 </button>
                             )}
                         </div>
@@ -397,6 +446,84 @@ export default function DetailSuratPage() {
                         >
                             Tutup
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Proses Sekretariat */}
+            {showProsesModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300 overflow-y-auto pt-20 pb-20">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-900">Proses & Buat Nomor Surat</h3>
+                        <p className="text-sm text-gray-500">
+                            Pilih klasifikasi untuk men-generate nomor surat dan unggah draft dokumen awal.
+                        </p>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Primer</label>
+                                <select 
+                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
+                                    value={klasifikasi.primerId}
+                                    onChange={e => setKlasifikasi(p => ({ ...p, primerId: e.target.value }))}
+                                >
+                                    <option value="">-- Pilih Primer --</option>
+                                    {primers.map((p: any) => <option key={p.id} value={p.id}>{p.kode} - {p.nama}</option>)}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Sekunder</label>
+                                <select 
+                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
+                                    value={klasifikasi.sekunderId}
+                                    onChange={e => setKlasifikasi(p => ({ ...p, sekunderId: e.target.value }))}
+                                    disabled={!klasifikasi.primerId}
+                                >
+                                    <option value="">-- Pilih Sekunder --</option>
+                                    {sekunders.map((s: any) => <option key={s.id} value={s.id}>{s.kode} - {s.nama}</option>)}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Tersier</label>
+                                <select 
+                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
+                                    value={klasifikasi.tersierId}
+                                    onChange={e => setKlasifikasi(p => ({ ...p, tersierId: e.target.value }))}
+                                    disabled={!klasifikasi.sekunderId}
+                                >
+                                    <option value="">-- Pilih Tersier --</option>
+                                    {tersiers.map((t: any) => <option key={t.id} value={t.id}>{t.kode} - {t.nama}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Unggah Draft Surat (.pdf/.docx)</label>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf,.docx"
+                                    className="w-full p-2 border border-gray-200 rounded-xl text-sm"
+                                    onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-2">
+                            <button
+                                onClick={() => { setShowProsesModal(false); setSelectedFile(null); }}
+                                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => submitAction("proses", selectedFile as File)}
+                                disabled={!klasifikasi.tersierId || !selectedFile || actionLoading}
+                                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition disabled:opacity-50"
+                            >
+                                {actionLoading ? "Menyimpan..." : "Proses & Buat Draft"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

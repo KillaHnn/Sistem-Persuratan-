@@ -19,6 +19,10 @@ class ApprovalController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:pdf,docx|max:10240',
+            'klasifikasi_primer_id' => 'required_without:nomor_surat_id|exists:klasifikasi_primers,id',
+            'klasifikasi_sekunder_id' => 'required_without:nomor_surat_id|exists:klasifikasi_sekunders,id',
+            'klasifikasi_tersier_id' => 'required_without:nomor_surat_id|exists:klasifikasi_tersiers,id',
+            'jenis_arsip' => 'nullable|string'
         ]);
 
         $surat = SuratUmum::findOrFail($id);
@@ -52,9 +56,43 @@ class ApprovalController extends Controller
             'uploaded_by'   => $user->id,
         ]);
 
+        $nomorSuratId = $surat->nomor_surat_id;
+
+        if (!$nomorSuratId) {
+            $primer = \App\Models\KlasifikasiPrimer::findOrFail($request->klasifikasi_primer_id);
+            $sekunder = \App\Models\KlasifikasiSekunder::findOrFail($request->klasifikasi_sekunder_id);
+            $tersier = \App\Models\KlasifikasiTersier::findOrFail($request->klasifikasi_tersier_id);
+
+            $nomorSurat = \App\Models\NomorSurat::create([
+                'klasifikasi_primer' => $primer->kode,
+                'klasifikasi_sekunder' => $sekunder->kode,
+                'klasifikasi_tersier' => $tersier->kode,
+                'jenis_arsip' => $request->input('jenis_arsip', 'Surat Umum'),
+                'tanggal_surat' => now()->toDateString(),
+                'hal_surat' => $surat->perihal,
+                'isi_surat' => '-', // Default value as content might be in file
+            ]);
+
+            $nomorSuratId = $nomorSurat->id;
+
+            $surat->update([
+                'klasifikasi_primer_id' => $primer->id,
+                'klasifikasi_sekunder_id' => $sekunder->id,
+                'klasifikasi_tersier_id' => $tersier->id,
+                'nomor_surat_id' => $nomorSuratId,
+            ]);
+        }
+
         $surat->update([
             'status'     => 'diproses',
             'handler_id' => $user->id,
+        ]);
+
+        \App\Models\NomorSuratHistory::create([
+            'surat_umum_id' => $surat->id,
+            'nomor_surat_id' => $nomorSuratId,
+            'generated_by' => $user->id,
+            'status_step' => 'sekretariat_validated',
         ]);
 
         ApprovalLog::create([
@@ -87,6 +125,13 @@ class ApprovalController extends Controller
         }
 
         $surat->update(['status' => 'diverifikasi']);
+
+        \App\Models\NomorSuratHistory::create([
+            'surat_umum_id' => $surat->id,
+            'nomor_surat_id' => $surat->nomor_surat_id,
+            'generated_by' => $user->id,
+            'status_step' => 'kabag_validated',
+        ]);
 
         ApprovalLog::create([
             'surat_umum_id' => $surat->id,
@@ -265,6 +310,13 @@ class ApprovalController extends Controller
 
         $surat->update(['status' => 'ditandatangani']);
 
+        \App\Models\NomorSuratHistory::create([
+            'surat_umum_id' => $surat->id,
+            'nomor_surat_id' => $surat->nomor_surat_id,
+            'generated_by' => $user->id,
+            'status_step' => 'signed',
+        ]);
+
         ApprovalLog::create([
             'surat_umum_id' => $surat->id,
             'approver_id'   => $user->id,
@@ -293,6 +345,66 @@ class ApprovalController extends Controller
         return response()->json([
             'message' => 'Surat berhasil ditandatangani',
             'data'    => $surat->fresh(['dokumens']),
+        ]);
+    }
+
+    /**
+     * Sekretariat mengirimkan surat yang sudah ditandatangani ke pemohon (ditandatangani → diarsipkan / selesai).
+     */
+    public function kirimKeUser(Request $request, $id)
+    {
+        $surat = SuratUmum::with('nomorSurat')->findOrFail($id);
+        $user = Auth::user();
+
+        if ($user->role !== 'sekretariat') {
+            return response()->json(['message' => 'Hanya sekretariat yang dapat mengirim surat ke pemohon'], 403);
+        }
+
+        if ($surat->status !== 'ditandatangani') {
+            return response()->json(['message' => 'Surat harus berstatus ditandatangani untuk dikirim'], 422);
+        }
+
+        $surat->update([
+            'status' => 'diarsipkan',
+            'tgl_selesai' => now(),
+        ]);
+
+        \App\Models\NomorSuratHistory::create([
+            'surat_umum_id' => $surat->id,
+            'nomor_surat_id' => $surat->nomor_surat_id,
+            'generated_by' => $user->id,
+            'status_step' => 'ready_for_user',
+        ]);
+
+        // Simpan ke tabel arsip_surats
+        if (!\App\Models\ArsipSurat::where('surat_umum_id', $surat->id)->exists()) {
+            \App\Models\ArsipSurat::create([
+                'surat_umum_id' => $surat->id,
+                'nomor_arsip' => $surat->nomorSurat ? $surat->nomorSurat->nomor_surat : null,
+                'lokasi_fisik' => $request->input('lokasi_fisik', 'Ruang Sekretariat'),
+                'keterangan' => 'Arsip otomatis setelah dikirim ke user',
+                'tanggal_arsip' => now(),
+            ]);
+        }
+
+        ApprovalLog::create([
+            'surat_umum_id' => $surat->id,
+            'approver_id'   => $user->id,
+            'aksi'          => 'disetujui',
+            'catatan'       => 'Surat telah dikirim ke pemohon dan diarsipkan',
+        ]);
+
+        // Notifikasi ke pemohon
+        NotifikasiSurat::create([
+            'surat_umum_id' => $surat->id,
+            'user_id'       => $surat->pemohon_id,
+            'judul'         => 'Surat Selesai',
+            'pesan'         => "Surat {$surat->perihal} telah selesai dan dikirim ke Anda.",
+        ]);
+
+        return response()->json([
+            'message' => 'Surat berhasil dikirim ke pemohon',
+            'data'    => $surat->fresh(),
         ]);
     }
 }
