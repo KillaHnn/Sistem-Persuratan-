@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('nomor_surat_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('surat_umum_id');
-            $table->unsignedBigInteger('nomor_surat_id');
+            $table->unsignedBigInteger('nomor_surat_id')->nullable();
             $table->unsignedBigInteger('generated_by'); // user id
             $table->enum('status_step', [
                 'draft',
@@ -36,6 +36,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Explicitly drop foreign key constraints before dropping the table
+        Schema::table('nomor_surat_histories', function (Blueprint $table) {
+            $table->dropForeign(['surat_umum_id']);
+            $table->dropForeign(['nomor_surat_id']);
+            $table->dropForeign(['generated_by']);
+        });
         Schema::dropIfExists('nomor_surat_histories');
     }
 };

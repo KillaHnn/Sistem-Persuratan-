@@ -80,6 +80,7 @@ class ApprovalController extends Controller
                 'klasifikasi_sekunder_id' => $sekunder->id,
                 'klasifikasi_tersier_id' => $tersier->id,
                 'nomor_surat_id' => $nomorSuratId,
+                'nomor_surat' => $nomorSurat->nomor_surat,
             ]);
         }
 

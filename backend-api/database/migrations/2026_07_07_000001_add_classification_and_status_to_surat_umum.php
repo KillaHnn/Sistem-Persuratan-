@@ -16,16 +16,14 @@ return new class extends Migration
             $table->unsignedBigInteger('klasifikasi_primer_id')->nullable()->after('handler_id');
             $table->unsignedBigInteger('klasifikasi_sekunder_id')->nullable()->after('klasifikasi_primer_id');
             $table->unsignedBigInteger('klasifikasi_tersier_id')->nullable()->after('klasifikasi_sekunder_id');
-            $table->foreign('klasifikasi_primer_id')->references('id')->on('klasifikasi_primers')->nullOnDelete();
-            $table->foreign('klasifikasi_sekunder_id')->references('id')->on('klasifikasi_sekunders')->nullOnDelete();
-            $table->foreign('klasifikasi_tersier_id')->references('id')->on('klasifikasi_tersiers')->nullOnDelete();
+            
 
             // link to generated nomor surat
             $table->unsignedBigInteger('nomor_surat_id')->nullable()->after('nomor_surat');
-            $table->foreign('nomor_surat_id')->references('id')->on('nomor_surats')->nullOnDelete();
+            
 
             // extend status enum – MySQL requires redefining the column
-            $table->enum('status', [
+                        $table->enum('status', [
                 'draft',
                 'awaiting_sekretariat',
                 'sekretariat_validated',
@@ -48,16 +46,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
+
         Schema::table('surat_umum', function (Blueprint $table) {
-            $table->dropForeign(['klasifikasi_primer_id']);
-            $table->dropForeign(['klasifikasi_sekunder_id']);
-            $table->dropForeign(['klasifikasi_tersier_id']);
-            $table->dropColumn(['klasifikasi_primer_id', 'klasifikasi_sekunder_id', 'klasifikasi_tersier_id']);
+            $table->dropColumn(['klasifikasi_primer_id', 'klasifikasi_sekunder_id', 'klasifikasi_tersier_id', 'nomor_surat_id']);
 
-            $table->dropForeign(['nomor_surat_id']);
-            $table->dropColumn('nomor_surat_id');
-
-            // revert status enum to original set
             $table->enum('status', [
                 'menunggu',
                 'diproses',
@@ -67,5 +60,7 @@ return new class extends Migration
                 'diarsipkan',
             ])->default('menunggu')->change();
         });
+
+        Schema::enableForeignKeyConstraints();
     }
 };
