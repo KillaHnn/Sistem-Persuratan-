@@ -305,96 +305,7 @@ export default function DetailSuratPage() {
                 </div>
             )}
 
-            {/* Panel Tindakan Validasi */}
-            {user && surat.status !== "dikembalikan" && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-4">
-                    <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
-                    
-                    {actionError && (
-                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start gap-2">
-                            <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                            <p>{actionError}</p>
-                        </div>
-                    )}
-                    
-                    {/* 1. SELEKSI UNTUK SEKRETARIAT */}
-                    {user.role === "sekretariat" && (
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            {surat.status === "menunggu" && (
-                                <>
-                                    <button
-                                        onClick={() => handleApprovalAction("proses")}
-                                        disabled={actionLoading}
-                                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                                    >
-                                        {actionLoading ? "Memproses..." : "Verifikasi (Setujui)"}
-                                    </button>
-                                    <button
-                                        onClick={() => setRejectModal(true)}
-                                        disabled={actionLoading}
-                                        className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                                    >
-                                        Kembalikan (Tolak)
-                                    </button>
-                                </>
-                            )}
-                            
-                            {surat.status === "ditandatangani" && (
-                                <button
-                                    onClick={() => handleApprovalAction("kirim-ke-user")}
-                                    disabled={actionLoading}
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                                >
-                                    {actionLoading ? "Memproses..." : "Kirim ke Pemohon & Arsipkan"}
-                                </button>
-                            )}
-                        </div>
-                    )}
-
-                    {/* 2. SELEKSI UNTUK KABAG TU */}
-                    {user.role === "kabag_tu" && surat.status === "diproses" && (
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <button
-                                onClick={() => handleApprovalAction("verifikasi")}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                            >
-                                Verifikasi (Setujui)
-                            </button>
-                            
-                            <button
-                                onClick={() => setRejectModal(true)}
-                                disabled={actionLoading}
-                                className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                            >
-                                Kembalikan (Revisi / Tolak)
-                            </button>
-                        </div>
-                    )}
-
-                    {/* 3. SELEKSI UNTUK WAKIL DEKAN */}
-                    {user.role === "wakil_dekan" && surat.status === "diverifikasi" && (
-                        <button
-                            onClick={() => handleApprovalAction("paraf")}
-                            disabled={actionLoading}
-                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                        >
-                            Beri Paraf Surat
-                        </button>
-                    )}
-
-                    {/* 4. SELEKSI UNTUK DEKAN */}
-                    {user.role === "dekan" && surat.status === "diverifikasi" && (
-                        <button
-                            onClick={() => handleApprovalAction("tandatangan")}
-                            disabled={actionLoading}
-                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                        >
-                            Tandatangani Surat
-                        </button>
-                    )}
-                </div>
-            )}
+            {/* Panel Tindakan Validasi dipindah ke bawah */}
 
             {/* Modal Input Catatan Penolakan (Kembalikan) */}
             {showRejectModal && (
@@ -655,6 +566,97 @@ export default function DetailSuratPage() {
                             </a>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* Panel Tindakan Validasi */}
+            {user && surat.status !== "dikembalikan" && (
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-4">
+                    <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
+                    
+                    {actionError && (
+                        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start gap-2">
+                            <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                            <p>{actionError}</p>
+                        </div>
+                    )}
+                    
+                    {/* 1. SELEKSI UNTUK SEKRETARIAT */}
+                    {user.role === "sekretariat" && (
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {surat.status === "menunggu" && (
+                                <>
+                                    <button
+                                        onClick={() => handleApprovalAction("proses")}
+                                        disabled={actionLoading}
+                                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    >
+                                        {actionLoading ? "Memproses..." : "Verifikasi (Setujui)"}
+                                    </button>
+                                    <button
+                                        onClick={() => setRejectModal(true)}
+                                        disabled={actionLoading}
+                                        className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    >
+                                        Kembalikan (Tolak)
+                                    </button>
+                                </>
+                            )}
+                            
+                            {surat.status === "ditandatangani" && (
+                                <button
+                                    onClick={() => handleApprovalAction("kirim-ke-user")}
+                                    disabled={actionLoading}
+                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                >
+                                    {actionLoading ? "Memproses..." : "Kirim ke Pemohon & Arsipkan"}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 2. SELEKSI UNTUK KABAG TU */}
+                    {user.role === "kabag_tu" && surat.status === "diproses" && (
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={() => handleApprovalAction("verifikasi")}
+                                disabled={actionLoading}
+                                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                            >
+                                Verifikasi (Setujui)
+                            </button>
+                            
+                            <button
+                                onClick={() => setRejectModal(true)}
+                                disabled={actionLoading}
+                                className="flex-1 py-3 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                            >
+                                Kembalikan (Revisi / Tolak)
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 3. SELEKSI UNTUK WAKIL DEKAN */}
+                    {user.role === "wakil_dekan" && surat.status === "diverifikasi" && (
+                        <button
+                            onClick={() => handleApprovalAction("paraf")}
+                            disabled={actionLoading}
+                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                        >
+                            Beri Paraf Surat
+                        </button>
+                    )}
+
+                    {/* 4. SELEKSI UNTUK DEKAN */}
+                    {user.role === "dekan" && surat.status === "diverifikasi" && (
+                        <button
+                            onClick={() => handleApprovalAction("tandatangan")}
+                            disabled={actionLoading}
+                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                        >
+                            Tandatangani Surat
+                        </button>
+                    )}
                 </div>
             )}
         </div>

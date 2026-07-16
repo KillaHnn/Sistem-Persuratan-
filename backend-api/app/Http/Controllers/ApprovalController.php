@@ -365,43 +365,49 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Surat harus berstatus ditandatangani untuk dikirim'], 422);
         }
 
-        $surat->update([
-            'status' => 'diarsipkan',
-            'tgl_selesai' => now(),
-        ]);
-
-        \App\Models\NomorSuratHistory::create([
-            'surat_umum_id' => $surat->id,
-            'nomor_surat_id' => $surat->nomor_surat_id,
-            'generated_by' => $user->id,
-            'status_step' => 'ready_for_user',
-        ]);
-
-        // Simpan ke tabel arsip_surats
-        if (!\App\Models\ArsipSurat::where('surat_umum_id', $surat->id)->exists()) {
-            \App\Models\ArsipSurat::create([
-                'surat_umum_id' => $surat->id,
-                'nomor_arsip' => $surat->nomorSurat ? $surat->nomorSurat->nomor_surat : null,
-                'lokasi_fisik' => $request->input('lokasi_fisik', 'Ruang Sekretariat'),
-                'keterangan' => 'Arsip otomatis setelah dikirim ke user',
-                'tanggal_arsip' => now(),
+        \Illuminate\Support\Facades\DB::transaction(function () use ($surat, $request, $user) {
+            $surat->update([
+                'status' => 'diarsipkan',
+                'tgl_selesai' => now(),
             ]);
-        }
 
-        ApprovalLog::create([
-            'surat_umum_id' => $surat->id,
-            'approver_id'   => $user->id,
-            'aksi'          => 'disetujui',
-            'catatan'       => 'Surat telah dikirim ke pemohon dan diarsipkan',
-        ]);
+            \App\Models\NomorSuratHistory::create([
+                'surat_umum_id' => $surat->id,
+                'nomor_surat_id' => $surat->nomor_surat_id,
+                'generated_by' => $user->id,
+                'status_step' => 'ready_for_user',
+            ]);
 
-        // Notifikasi ke pemohon
-        NotifikasiSurat::create([
-            'surat_umum_id' => $surat->id,
-            'user_id'       => $surat->pemohon_id,
-            'judul'         => 'Surat Selesai',
-            'pesan'         => "Surat {$surat->perihal} telah selesai dan dikirim ke Anda.",
-        ]);
+            // Dapatkan path_digital dari dokumen surat_ttd terbaru
+            $signedDokumen = $surat->dokumens()->where('tipe_dokumen', 'surat_ttd')->latest('versi')->first();
+            $pathDigital = $signedDokumen ? $signedDokumen->path_file : 'Tidak ada dokumen';
+
+            // Simpan ke tabel arsip_surats
+            if (!\App\Models\ArsipSurat::where('surat_umum_id', $surat->id)->exists()) {
+                \App\Models\ArsipSurat::create([
+                    'surat_umum_id' => $surat->id,
+                    'nomor_arsip' => $surat->nomor_surat ?? '-', // from string field directly
+                    'lokasi_fisik' => $request->input('lokasi_fisik', 'Ruang Sekretariat'),
+                    'path_digital' => $pathDigital,
+                    'dibuat_oleh' => $user->id,
+                ]);
+            }
+
+            ApprovalLog::create([
+                'surat_umum_id' => $surat->id,
+                'approver_id'   => $user->id,
+                'aksi'          => 'disetujui',
+                'catatan'       => 'Surat telah dikirim ke pemohon dan diarsipkan',
+            ]);
+
+            // Notifikasi ke pemohon
+            NotifikasiSurat::create([
+                'surat_umum_id' => $surat->id,
+                'user_id'       => $surat->pemohon_id,
+                'judul'         => 'Surat Selesai',
+                'pesan'         => "Surat {$surat->perihal} telah selesai dan dikirim ke Anda.",
+            ]);
+        });
 
         return response()->json([
             'message' => 'Surat berhasil dikirim ke pemohon',

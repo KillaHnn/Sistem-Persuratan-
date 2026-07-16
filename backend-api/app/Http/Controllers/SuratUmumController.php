@@ -121,12 +121,16 @@ class SuratUmumController extends Controller
      */
     public function show($id)
     {
-                $surat = SuratUmum::with([
+        $user = Auth::user();
+        
+        $surat = SuratUmum::with([
             'pemohon',
             'handler',
             'approvalLogs.approver',
-            'dokumens' => function ($q) {
-                $q->whereNotIn('tipe_dokumen', ['draft', 'draft_revisi']);
+            'dokumens' => function ($q) use ($user) {
+                if ($user->role === 'pemohon') {
+                    $q->whereNotIn('tipe_dokumen', ['draft', 'draft_revisi', 'surat_paraf']);
+                }
             },
         ])
             ->findOrFail($id);
