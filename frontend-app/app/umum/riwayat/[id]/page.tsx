@@ -491,16 +491,25 @@ export default function DetailSuratPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {Object.entries(detail)
                             .filter(([k]) => !["id", "surat_umum_id", "created_at", "updated_at"].includes(k))
-                            .map(([k, v]) => (
-                                <div key={k} className="bg-gray-50 rounded-xl p-4">
-                                    <p className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1">
-                                        {k.replace(/_/g, " ")}
-                                    </p>
-                                    <p className="text-sm text-gray-800 font-medium">
-                                        {String(v) || <span className="text-gray-400 italic">-</span>}
-                                    </p>
-                                </div>
-                            ))}
+                            .map(([k, v]) => {
+                                let displayValue: React.ReactNode = String(v);
+                                if (!v) {
+                                    displayValue = <span className="text-gray-400 italic">-</span>;
+                                } else if (k.includes('tanggal')) {
+                                    displayValue = new Date(String(v)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+                                }
+                                
+                                return (
+                                    <div key={k} className="bg-gray-50 rounded-xl p-4">
+                                        <p className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1">
+                                            {k.replace(/_/g, " ")}
+                                        </p>
+                                        <p className="text-sm text-gray-800 font-medium">
+                                            {displayValue}
+                                        </p>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             )}

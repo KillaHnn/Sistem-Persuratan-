@@ -43,12 +43,15 @@ class DokumenSuratController extends Controller
             ->max('versi') ?? 0;
 
         $file = $request->file('file');
-        $path = $file->store("dokumen-surat/{$suratId}", 'public');
+        $newVersion = $latestVersion + 1;
+        $originalName = $file->getClientOriginalName();
+        $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
+        $path = $file->storeAs("dokumen-surat/{$suratId}", $filename, 'public');
 
         $dokumen = DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => $request->tipe_dokumen,
-            'nama_file'     => $file->getClientOriginalName(),
+            'nama_file'     => $originalName,
             'path_file'     => $path,
             'versi'         => $latestVersion + 1,
             'uploaded_by'   => Auth::id(),

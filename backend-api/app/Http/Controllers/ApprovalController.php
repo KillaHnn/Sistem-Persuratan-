@@ -39,20 +39,23 @@ class ApprovalController extends Controller
         // Tentukan tipe dokumen berdasarkan revisi
         $tipeDokumen = $surat->revisi_ke > 0 ? 'draft_revisi' : 'draft';
 
-        // Upload file draf
-        $file = $request->file('file');
-        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
-
         $latestVersion = $surat->dokumens()
             ->where('tipe_dokumen', $tipeDokumen)
             ->max('versi') ?? 0;
+        $newVersion = $latestVersion + 1;
+
+        // Upload file draf
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
+        $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
         DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => $tipeDokumen,
-            'nama_file'     => $file->getClientOriginalName(),
+            'nama_file'     => $originalName,
             'path_file'     => $path,
-            'versi'         => $latestVersion + 1,
+            'versi'         => $newVersion,
             'uploaded_by'   => $user->id,
         ]);
 
@@ -240,9 +243,16 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk diparaf'], 422);
         }
 
-        // Upload file surat tandatangan
+        $latestVersion = $surat->dokumens()
+            ->where('tipe_dokumen', 'surat_paraf')
+            ->max('versi') ?? 0;
+        $newVersion = $latestVersion + 1;
+
+        // Upload file surat tandatangan (paraf)
         $file = $request->file('file');
-        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
+        $originalName = $file->getClientOriginalName();
+        $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
+        $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
         // Hapus semua dokumen draft yang ada (draft dan draft_revisi) sebelum menyimpan tandatangan
         DokumenSurat::where('surat_umum_id', $surat->id)
@@ -252,9 +262,9 @@ class ApprovalController extends Controller
         DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => 'surat_paraf',
-            'nama_file'     => $file->getClientOriginalName(),
+            'nama_file'     => $originalName,
             'path_file'     => $path,
-            'versi'         => $latestVersion + 1,
+            'versi'         => $newVersion,
             'uploaded_by'   => $user->id,
         ]);
 
@@ -292,20 +302,23 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk ditandatangani'], 422);
         }
 
-        // Upload file surat TTD
-        $file = $request->file('file');
-        $path = $file->store("dokumen-surat/{$surat->id}", 'public');
-
         $latestVersion = $surat->dokumens()
             ->where('tipe_dokumen', 'surat_ttd')
             ->max('versi') ?? 0;
+        $newVersion = $latestVersion + 1;
+
+        // Upload file surat TTD
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
+        $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
         DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => 'surat_ttd',
-            'nama_file'     => $file->getClientOriginalName(),
+            'nama_file'     => $originalName,
             'path_file'     => $path,
-            'versi'         => $latestVersion + 1,
+            'versi'         => $newVersion,
             'uploaded_by'   => $user->id,
         ]);
 

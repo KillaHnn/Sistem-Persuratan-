@@ -88,12 +88,14 @@ class SuratUmumController extends Controller
             // 3. Simpan Lampiran jika ada
             if ($request->hasFile('lampiran')) {
                 $file = $request->file('lampiran');
-                $path = $file->store("dokumen-surat/{$surat->id}", 'public');
+                $originalName = $file->getClientOriginalName();
+                $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v1." . $file->getClientOriginalExtension();
+                $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
                 \App\Models\DokumenSurat::create([
                     'surat_umum_id' => $surat->id,
                     'tipe_dokumen'  => 'lampiran_pendukung',
-                    'nama_file'     => $file->getClientOriginalName(),
+                    'nama_file'     => $originalName,
                     'path_file'     => $path,
                     'versi'         => 1,
                     'uploaded_by'   => Auth::id(),
