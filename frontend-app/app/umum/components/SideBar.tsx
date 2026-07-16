@@ -17,12 +17,14 @@ type MenuItem = {
     name: string;
     icon: any;
     href: string;
+    role?: string;
 };
 
 const menu: MenuItem[] = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/umum/dashboard" },
     { name: "Buat Surat", icon: FilePlus2, href: "/umum/buat-surat" },
     { name: "Riwayat Surat", icon: ClipboardList, href: "/umum/riwayat" },
+    { name: "Buku Register", icon: ClipboardList, href: "/umum/buku-register", role: "sekretariat" },
     { name: "Notifikasi", icon: Bell, href: "/umum/notifikasi" },
 ];
 
@@ -121,7 +123,7 @@ export default function Sidebar() {
 
                     {/* Menu */}
                     <nav className="flex flex-col gap-1 px-2">
-                        {menu.map((item) => {
+                        {menu.filter(item => !item.role || item.role === userData.role).map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <Link

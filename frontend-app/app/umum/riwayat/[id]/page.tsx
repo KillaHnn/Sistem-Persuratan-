@@ -12,8 +12,9 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
     diproses:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
     dikembalikan:   { label: "Dikembalikan",   color: "text-red-700",     bg: "bg-red-100" },
     diverifikasi:   { label: "Diverifikasi",   color: "text-purple-700",  bg: "bg-purple-100" },
-    ditandatangani: { label: "Ditandatangani", color: "text-green-700",   bg: "bg-green-100" },
-    diarsipkan:     { label: "Diarsipkan",     color: "text-gray-700",    bg: "bg-gray-100" },
+    ditandatangani: { label: "Ditandatangani", color: "text-emerald-700", bg: "bg-emerald-100" },
+    selesai:        { label: "Selesai",        color: "text-green-700",   bg: "bg-green-100" },
+    diarsipkan:     { label: "Selesai",        color: "text-gray-700",    bg: "bg-gray-100" },
 };
 
 const JENIS_MAP: Record<string, string> = {
@@ -29,10 +30,11 @@ const APPROVAL_STEPS = [
     { status: "diproses",       label: "Diproses Sekretariat",   actor: "Sekretariat" },
     { status: "diverifikasi",   label: "Diverifikasi Kabag TU",  actor: "Kabag TU" },
     { status: "ditandatangani", label: "Ditandatangani Dekan",   actor: "Dekan" },
+    { status: "selesai",        label: "Surat Selesai",          actor: "Sistem" },
     { status: "diarsipkan",     label: "Diarsipkan",             actor: "Sekretariat" },
 ];
 
-const STATUS_ORDER = ["menunggu", "diproses", "diverifikasi", "ditandatangani", "diarsipkan"];
+const STATUS_ORDER = ["menunggu", "diproses", "diverifikasi", "ditandatangani", "selesai", "diarsipkan"];
 
 export default function DetailSuratPage() {
     const params = useParams();
@@ -612,13 +614,13 @@ export default function DetailSuratPage() {
                                 </>
                             )}
                             
-                            {surat.status === "ditandatangani" && (
+                            {surat.status === "selesai" && (
                                 <button
-                                    onClick={() => handleApprovalAction("kirim-ke-user")}
+                                    onClick={() => handleApprovalAction("arsipkan")}
                                     disabled={actionLoading}
                                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
                                 >
-                                    {actionLoading ? "Memproses..." : "Kirim ke Pemohon & Arsipkan"}
+                                    {actionLoading ? "Memproses..." : "Tandai Diarsipkan"}
                                 </button>
                             )}
                         </div>

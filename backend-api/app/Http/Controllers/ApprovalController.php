@@ -322,7 +322,7 @@ class ApprovalController extends Controller
             'uploaded_by'   => $user->id,
         ]);
 
-        $surat->update(['status' => 'ditandatangani']);
+        $surat->update(['status' => 'selesai']);
 
         \App\Models\NomorSuratHistory::create([
             'surat_umum_id' => $surat->id,
@@ -335,7 +335,7 @@ class ApprovalController extends Controller
             'surat_umum_id' => $surat->id,
             'approver_id'   => $user->id,
             'aksi'          => 'ditandatangani',
-            'catatan'       => $request->input('catatan', 'Ditandatangani oleh Dekan'),
+            'catatan'       => $request->input('catatan', 'Ditandatangani oleh Dekan, siap diunduh'),
         ]);
 
         // Notifikasi ke sekretariat untuk arsip
@@ -343,8 +343,8 @@ class ApprovalController extends Controller
             NotifikasiSurat::create([
                 'surat_umum_id' => $surat->id,
                 'user_id'       => $surat->handler_id,
-                'judul'         => 'Surat Ditandatangani',
-                'pesan'         => "Surat {$surat->perihal} telah ditandatangani Dekan, siap diarsipkan",
+                'judul'         => 'Surat Selesai',
+                'pesan'         => "Surat {$surat->perihal} telah selesai (ditandatangani Dekan), siap diarsipkan",
             ]);
         }
 
@@ -352,30 +352,30 @@ class ApprovalController extends Controller
         NotifikasiSurat::create([
             'surat_umum_id' => $surat->id,
             'user_id'       => $surat->pemohon_id,
-            'judul'         => 'Surat Selesai Ditandatangani',
-            'pesan'         => "Surat {$surat->perihal} telah ditandatangani oleh Dekan",
+            'judul'         => 'Surat Selesai',
+            'pesan'         => "Surat {$surat->perihal} telah selesai ditandatangani oleh Dekan dan siap diunduh",
         ]);
 
         return response()->json([
-            'message' => 'Surat berhasil ditandatangani',
+            'message' => 'Surat berhasil ditandatangani dan selesai',
             'data'    => $surat->fresh(['dokumens']),
         ]);
     }
 
     /**
-     * Sekretariat mengirimkan surat yang sudah ditandatangani ke pemohon (ditandatangani → diarsipkan / selesai).
+     * Sekretariat menandai surat sebagai diarsipkan.
      */
-    public function kirimKeUser(Request $request, $id)
+    public function arsipkan(Request $request, $id)
     {
         $surat = SuratUmum::with('nomorSurat')->findOrFail($id);
         $user = Auth::user();
 
         if ($user->role !== 'sekretariat') {
-            return response()->json(['message' => 'Hanya sekretariat yang dapat mengirim surat ke pemohon'], 403);
+            return response()->json(['message' => 'Hanya sekretariat yang dapat mengarsipkan surat'], 403);
         }
 
-        if ($surat->status !== 'ditandatangani') {
-            return response()->json(['message' => 'Surat harus berstatus ditandatangani untuk dikirim'], 422);
+        if ($surat->status !== 'selesai') {
+            return response()->json(['message' => 'Surat harus berstatus selesai untuk diarsipkan'], 422);
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($surat, $request, $user) {
@@ -400,7 +400,7 @@ class ApprovalController extends Controller
                 \App\Models\ArsipSurat::create([
                     'surat_umum_id' => $surat->id,
                     'nomor_arsip' => $surat->nomor_surat ?? '-', // from string field directly
-                    'lokasi_fisik' => $request->input('lokasi_fisik', 'Ruang Sekretariat'),
+                    'lokasi_fisik' => 'Ruang Sekretariat',
                     'path_digital' => $pathDigital,
                     'dibuat_oleh' => $user->id,
                 ]);
@@ -410,15 +410,7 @@ class ApprovalController extends Controller
                 'surat_umum_id' => $surat->id,
                 'approver_id'   => $user->id,
                 'aksi'          => 'disetujui',
-                'catatan'       => 'Surat telah dikirim ke pemohon dan diarsipkan',
-            ]);
-
-            // Notifikasi ke pemohon
-            NotifikasiSurat::create([
-                'surat_umum_id' => $surat->id,
-                'user_id'       => $surat->pemohon_id,
-                'judul'         => 'Surat Selesai',
-                'pesan'         => "Surat {$surat->perihal} telah selesai dan dikirim ke Anda.",
+                'catatan'       => 'Surat telah diarsipkan oleh sekretariat',
             ]);
         });
 
