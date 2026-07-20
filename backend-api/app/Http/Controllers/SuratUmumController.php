@@ -102,7 +102,7 @@ class SuratUmumController extends Controller
                 ]);
             }
 
-            // 4. Kirim notifikasi ke sekretariat
+            // 4. Kirim notifikasi ke pemohon & sekretariat
             $this->notifySekretariat($surat);
 
             return $surat;
@@ -249,14 +249,26 @@ class SuratUmumController extends Controller
 
     private function notifySekretariat(SuratUmum $surat): void
     {
-        $sekretariats = \App\Models\User::where('role', 'sekretariat')->get();
+        // Pastikan relasi pemohon sudah ter-load
+        $surat->loadMissing('pemohon');
+        $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
+        // Notifikasi ke pemohon: surat berhasil dibuat
+        NotifikasiSurat::create([
+            'surat_umum_id' => $surat->id,
+            'user_id'       => $surat->pemohon_id,
+            'judul'         => 'Permohonan Surat Dibuat',
+            'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang menunggu diproses oleh sekretariat.",
+        ]);
+
+        // Notifikasi ke semua sekretariat: surat baru masuk
+        $sekretariats = \App\Models\User::where('role', 'sekretariat')->get();
         foreach ($sekretariats as $sekretariat) {
             NotifikasiSurat::create([
                 'surat_umum_id' => $surat->id,
                 'user_id'       => $sekretariat->id,
                 'judul'         => 'Permohonan Surat Baru',
-                'pesan'         => "Permohonan {$surat->jenis_surat} dari {$surat->pemohon->name}: {$surat->perihal}",
+                'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} baru masuk dan menunggu diproses.",
             ]);
         }
     }

@@ -10,20 +10,31 @@ class NotifikasiSuratController extends Controller
 {
     /**
      * List notifikasi milik user yang login.
+     * Selalu menyertakan unread_count di root response.
      */
     public function index(Request $request)
     {
-        $query = NotifikasiSurat::where('user_id', Auth::id())
+        $userId = Auth::id();
+
+        $query = NotifikasiSurat::where('user_id', $userId)
             ->with('suratUmum')
             ->orderBy('created_at', 'desc');
 
-        if ($request->has('unread') && $request->unread === 'true') {
+        if ($request->boolean('unread')) {
             $query->where('is_read', false);
         }
 
         $notifikasi = $query->paginate(20);
 
-        return response()->json($notifikasi);
+        // Hitung total unread secara terpisah (tidak bergantung filter)
+        $unreadCount = NotifikasiSurat::where('user_id', $userId)
+            ->where('is_read', false)
+            ->count();
+
+        return response()->json(array_merge(
+            $notifikasi->toArray(),
+            ['unread_count' => $unreadCount]
+        ));
     }
 
     /**

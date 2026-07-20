@@ -50,18 +50,26 @@ export default function Sidebar() {
         }
         // Fetch unread notif count
         fetchUnreadCount();
+
+        // Refresh badge saat user kembali ke tab
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") fetchUnreadCount();
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        return () => document.removeEventListener("visibilitychange", handleVisibility);
     }, []);
 
     const fetchUnreadCount = async () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-            const res = await fetch("http://127.0.0.1:8000/api/umum/notifikasi?unread=true", {
+            const res = await fetch("http://127.0.0.1:8000/api/umum/notifikasi", {
                 headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
             });
             if (res.ok) {
                 const data = await res.json();
-                setUnreadCount(data.total || 0);
+                // unread_count adalah field tambahan yang selalu ada di root response
+                setUnreadCount(data.unread_count ?? 0);
             }
         } catch (_) {}
     };
