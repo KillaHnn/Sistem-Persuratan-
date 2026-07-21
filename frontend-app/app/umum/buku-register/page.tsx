@@ -26,7 +26,7 @@ export default function BukuRegisterPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/umum/buku-agenda", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });
             const result = await res.json();
@@ -42,7 +42,7 @@ export default function BukuRegisterPage() {
 
     const fetchDropdown = async () => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/umum/buku-agenda-dropdown", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda-dropdown`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });
             const result = await res.json();
@@ -101,8 +101,8 @@ export default function BukuRegisterPage() {
         try {
             const isEdit = !!formData.id;
             const url = isEdit 
-                ? `http://127.0.0.1:8000/api/umum/buku-agenda/${formData.id}`
-                : "http://127.0.0.1:8000/api/umum/buku-agenda";
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda/${formData.id}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda`;
                 
             const method = isEdit ? "PUT" : "POST";
             
@@ -133,7 +133,7 @@ export default function BukuRegisterPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
         try {
-            const res = await fetch(`http://127.0.0.1:8000/api/umum/buku-agenda/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });

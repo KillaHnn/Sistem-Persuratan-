@@ -51,7 +51,7 @@ export default function BuatSuratPage() {
             Object.entries(detail).forEach(([k, v]) => formData.append(`detail[${k}]`, v));
             if (lampiran) formData.append("lampiran", lampiran);
 
-            const res = await fetch("http://127.0.0.1:8000/api/umum/surat", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${getToken()}`,

@@ -51,7 +51,7 @@ export default function RiwayatPage() {
     useEffect(() => {
         const fetchSurats = async () => {
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/umum/surat", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat`, {
                     headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
                 });
                 if (!res.ok) throw new Error("Gagal memuat data");

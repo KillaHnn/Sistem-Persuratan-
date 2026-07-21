@@ -57,7 +57,7 @@ export default function DetailSuratPage() {
 
     useEffect(() => {
         if (showProsesModal && primers.length === 0) {
-            fetch(`http://127.0.0.1:8000/api/klasifikasi/primer`, {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/primer`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -67,7 +67,7 @@ export default function DetailSuratPage() {
 
     useEffect(() => {
         if (klasifikasi.primerId) {
-            fetch(`http://127.0.0.1:8000/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -77,7 +77,7 @@ export default function DetailSuratPage() {
 
     useEffect(() => {
         if (klasifikasi.sekunderId) {
-            fetch(`http://127.0.0.1:8000/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -108,7 +108,7 @@ export default function DetailSuratPage() {
     useEffect(() => {
         const fetchDetail = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/api/umum/surat/${params.id}`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat/${params.id}`, {
                     headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
                 });
                 if (!res.ok) throw new Error("Surat tidak ditemukan");
@@ -163,7 +163,7 @@ export default function DetailSuratPage() {
                 headers["Content-Type"] = "application/json";
             }
 
-            const res = await fetch(`http://127.0.0.1:8000/api/umum/surat/${params.id}/${action}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat/${params.id}/${action}`, {
                 method: "POST",
                 headers,
                 body,
@@ -559,7 +559,7 @@ export default function DetailSuratPage() {
                     <div className="space-y-3">
                         {surat.dokumens.map((dok: any) => (
                             <a key={dok.id}
-                                href={`http://127.0.0.1:8000/storage/${dok.path_file}`}
+                                href={`${process.env.NEXT_PUBLIC_API_URL}/storage/${dok.path_file}`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 border border-transparent hover:border-orange-200 rounded-2xl transition group">
                                 <div className="flex items-center gap-3">

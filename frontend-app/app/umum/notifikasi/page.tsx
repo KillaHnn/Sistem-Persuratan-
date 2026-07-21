@@ -24,7 +24,7 @@ type Notifikasi = {
     created_at: string;
 };
 
-const API_BASE = "http://127.0.0.1:8000/api/umum";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api/umum`;
 
 // Tentukan ikon & warna berdasarkan kata kunci judul
 function getNotifStyle(judul: string) {
