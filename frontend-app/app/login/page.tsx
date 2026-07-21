@@ -42,10 +42,6 @@ export default function LoginPage() {
                 const role = data.user?.role?.toLowerCase();
 
                 const routes: Record<string, string> = {
-                    admin: "/admins/dashboard",
-                    div_sekolah: "/div_sekolah/dashboard",
-                    div_prodi: "/div_prodi/dashboard",
-                    mahasiswa: "/mahasiswa/dashboard",
                     pemohon: "/umum/dashboard",
                     sekretariat: "/umum/dashboard",
                     kabag_tu: "/umum/dashboard",

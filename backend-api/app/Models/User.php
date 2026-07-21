@@ -14,11 +14,6 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    public function profileMHS()
-    {
-        return $this->hasOne(ProfileMHS::class, 'user_id');
-    }
-
     /**
      * The attributes that are mass assignable.
      *

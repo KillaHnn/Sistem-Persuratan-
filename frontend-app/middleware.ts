@@ -8,27 +8,16 @@ export default function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // 2. Jika user mencoba akses halaman dashboard tapi tidak ada token
-    if (!token && (pathname.startsWith('/admins') || pathname.startsWith('/mahasiswa') || pathname.startsWith('/div_'))) {
+    if (!token && pathname.startsWith('/umum')) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // 3. Proteksi berdasarkan Role
-    // Jika role admin mencoba masuk ke area mahasiswa, atau sebaliknya
+    // Hanya pengguna yang sah dengan role persuratan umum yang boleh masuk
     const userRole = role?.toLowerCase();
-
-    if (pathname.startsWith('/admins') && userRole !== 'admin') {
-        return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    if (pathname.startsWith('/mahasiswa') && userRole !== 'mahasiswa') {
-        return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    if (pathname.startsWith('/div_sekolah') && userRole !== 'div_sekolah') {
-        return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    if (pathname.startsWith('/div_prodi') && userRole !== 'div_prodi') {
+    const validRoles = ['pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
+    
+    if (pathname.startsWith('/umum') && (!userRole || !validRoles.includes(userRole))) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
@@ -37,5 +26,5 @@ export default function middleware(request: NextRequest) {
 
 // Tentukan halaman mana saja yang harus lewat middleware ini
 export const config = {
-    matcher: ['/admins/:path*', '/mahasiswa/:path*', '/div_sekolah/:path*', '/div_prodi/:path*'],
+    matcher: ['/umum/:path*'],
 };

@@ -15,13 +15,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // Create an role 
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'div_sekolah']);
-        Role::create(['name' => 'div_prodi']);
-        Role::create(['name' => 'mahasiswa']);
-
-        // Seed default users
-        $this->call(UserSeeder::class);
+        $this->call(PersuratanUmumSeeder::class);
+        $this->call(KlasifikasiSeeder::class);
     }
 }

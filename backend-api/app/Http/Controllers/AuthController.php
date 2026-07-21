@@ -28,19 +28,6 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-
-        // Enforce role-based login constraints
-        if ($user->role === 'mahasiswa') {
-            if ($field !== 'email') {
-                return response()->json(['message' => 'Mahasiswa must login with Email'], 403);
-            }
-        } else {
-            // If user is NOT mahasiswa, they MUST use username
-            if ($field !== 'username') {
-                return response()->json(['message' => 'Staff/Admin must login with Username'], 403);
-            }
-        }
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

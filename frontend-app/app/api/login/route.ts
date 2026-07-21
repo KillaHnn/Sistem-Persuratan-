@@ -19,8 +19,8 @@ export async function POST(req: Request) {
 
     // Pastikan hanya kirim SALAH SATU field, jangan keduanya
     const payload = isEmail
-      ? { email: identifier, password: password, role: role}      // mahasiswa → kirim 'email' saja
-      : { username: identifier, password: password, role: role};  // admin/staff → kirim 'username' saja
+      ? { email: identifier, password: password, role: role}
+      : { username: identifier, password: password, role: role};
 
     // Tambah log untuk verifikasi
     console.log("Payload yang dikirim:", JSON.stringify(payload));
