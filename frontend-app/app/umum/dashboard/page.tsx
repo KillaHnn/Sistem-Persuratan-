@@ -37,6 +37,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = 
     dikembalikan:  { label: "Dikembalikan",  color: "bg-red-100 text-red-700 border-red-200",            icon: RotateCcw },
     diverifikasi:  { label: "Diverifikasi",  color: "bg-purple-100 text-purple-700 border-purple-200",  icon: CheckCircle },
     ditandatangani:{ label: "Ditandatangani",color: "bg-green-100 text-green-700 border-green-200",     icon: CheckCircle },
+    selesai:       { label: "Selesai",       color: "bg-green-100 text-green-700 border-green-200",     icon: CheckCircle },
     diarsipkan:    { label: "Diarsipkan",    color: "bg-gray-100 text-gray-700 border-gray-200",        icon: Archive },
 };
 
@@ -97,7 +98,7 @@ export default function DashboardPage() {
     const stats = [
         { title: "Total Surat",   value: surats.length,                                                     icon: FileText,    color: "bg-orange-500", text: "text-orange-500" },
         { title: "Menunggu",      value: surats.filter(s => s.status === "menunggu").length,    icon: Clock,       color: "bg-yellow-500", text: "text-yellow-500" },
-        { title: "Selesai",       value: surats.filter(s => s.status === "ditandatangani" || s.status === "diarsipkan").length, icon: CheckCircle, color: "bg-green-500", text: "text-green-500" },
+        { title: "Selesai",       value: surats.filter(s => s.status === "selesai" || s.status === "ditandatangani" || s.status === "diarsipkan").length, icon: CheckCircle, color: "bg-green-500", text: "text-green-500" },
         { title: "Dikembalikan",  value: surats.filter(s => s.status === "dikembalikan").length,icon: XCircle,     color: "bg-red-500",    text: "text-red-500" },
     ];
 
@@ -106,12 +107,14 @@ export default function DashboardPage() {
         { key: "menunggu", label: "Menunggu" },
         { key: "diproses", label: "Diproses" },
         { key: "dikembalikan", label: "Dikembalikan" },
-        { key: "ditandatangani", label: "Selesai" },
+        { key: "selesai_tab", label: "Selesai" },
     ];
 
     const filtered = activeFilter === "semua"
         ? surats
-        : surats.filter(s => s.status === activeFilter);
+        : activeFilter === "selesai_tab"
+            ? surats.filter(s => s.status === "selesai" || s.status === "ditandatangani" || s.status === "diarsipkan")
+            : surats.filter(s => s.status === activeFilter);
 
     const formatDate = (dateStr: string) =>
         new Date(dateStr).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });

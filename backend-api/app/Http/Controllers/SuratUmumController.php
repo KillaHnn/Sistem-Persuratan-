@@ -29,10 +29,12 @@ class SuratUmumController extends Controller
         // Filter berdasarkan role
         if ($user->role === 'pemohon') {
             $query->where('pemohon_id', $user->id);
+        } elseif ($user->role === 'kabag_tu') {
+            $query->where('status', '!=', 'dikembalikan');
         } elseif (in_array($user->role, ['wakil_dekan', 'dekan'])) {
-            $query->whereIn('status', ['diverifikasi', 'ditandatangani', 'diarsipkan']);
+            $query->whereIn('status', ['diverifikasi', 'ditandatangani', 'selesai', 'diarsipkan']);
         }
-        // sekretariat & kabag_tu bisa lihat semua
+        // sekretariat bisa lihat semua
 
         // Filter opsional
         if ($request->has('status')) {
