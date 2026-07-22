@@ -15,7 +15,7 @@ class PersuratanUmumSeeder extends Seeder
     public function run(): void
     {
         // Buat role baru (tidak menghapus role lama)
-        $roles = ['pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
+        $roles = ['superadmin', 'pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
 
         foreach ($roles as $roleName) {
             Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
@@ -23,6 +23,15 @@ class PersuratanUmumSeeder extends Seeder
 
         // User dummy untuk setiap role
         $users = [
+            [
+                'name'     => 'Super Admin',
+                'username' => 'admin01',
+                'email'    => 'admin01@ssdmi.ac.id',
+                'password' => Hash::make('password'),
+                'role'     => 'superadmin',
+                'unit_kerja' => 'Pusat',
+                'is_active'  => true,
+            ],
             [
                 'name'     => 'Ahmad Pemohon',
                 'username' => 'pemohon01',

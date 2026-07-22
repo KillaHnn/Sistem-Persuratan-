@@ -11,6 +11,7 @@ import {
     ChevronLeft,
     ChevronRight,
     LogOut,
+    Users,
 } from "lucide-react";
 
 type MenuItem = {
@@ -26,6 +27,7 @@ const menu: MenuItem[] = [
     { name: "Riwayat Surat", icon: ClipboardList, href: "/umum/riwayat" },
     { name: "Buku Register", icon: ClipboardList, href: "/umum/buku-register", role: "sekretariat" },
     { name: "Notifikasi", icon: Bell, href: "/umum/notifikasi" },
+    { name: "Manajemen User", icon: Users, href: "/umum/users", role: "superadmin" },
 ];
 
 export default function Sidebar() {
@@ -131,7 +133,12 @@ export default function Sidebar() {
 
                     {/* Menu */}
                     <nav className="flex flex-col gap-1 px-2">
-                        {menu.filter(item => !item.role || item.role === userData.role).map((item) => {
+                        {menu.filter(item => {
+                            if (userData.role === 'superadmin') {
+                                return item.role === 'superadmin';
+                            }
+                            return !item.role || item.role === userData.role;
+                        }).map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <Link
