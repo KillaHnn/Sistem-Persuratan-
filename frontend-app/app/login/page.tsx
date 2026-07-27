@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
@@ -46,7 +47,8 @@ export default function LoginPage() {
                     sekretariat: "/umum/dashboard",
                     kabag_tu: "/umum/dashboard",
                     wakil_dekan: "/umum/dashboard",
-                    dekan: "/umum/dashboard"
+                    dekan: "/umum/dashboard",
+                    superadmin: "/umum/users"
                 };
 
                 if (routes[role]) {
@@ -177,6 +179,15 @@ export default function LoginPage() {
                                 )}
                             </button>
                         </form>
+
+                        <div className="mt-8 text-center">
+                            <p className="text-gray-500 text-sm">
+                                Belum punya akun?{" "}
+                                <Link href="/register" className="font-bold text-orange-600 hover:text-orange-700 transition-colors">
+                                    Daftar sekarang
+                                </Link>
+                            </p>
+                        </div>
                     </div>
 
                     <div className="mt-10 text-center flex flex-col items-center gap-4">

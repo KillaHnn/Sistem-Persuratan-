@@ -15,7 +15,7 @@ export default function middleware(request: NextRequest) {
     // 3. Proteksi berdasarkan Role
     // Hanya pengguna yang sah dengan role persuratan umum yang boleh masuk
     const userRole = role?.toLowerCase();
-    const validRoles = ['pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
+    const validRoles = ['superadmin', 'pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
     
     if (pathname.startsWith('/umum') && (!userRole || !validRoles.includes(userRole))) {
         return NextResponse.redirect(new URL('/login', request.url));

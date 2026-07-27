@@ -6,9 +6,17 @@ use App\Http\Controllers\AuthController;
 use App\Http\Middleware\LoginCredentialMiddleware;
 
 Route::post('/login', [AuthController::class, 'login'])->middleware(LoginCredentialMiddleware::class);
+Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
     
+    // User Management (Superadmin Only)
+    Route::middleware('role:superadmin')->group(function () {
+        Route::apiResource('users', App\Http\Controllers\UserController::class);
+        Route::patch('users/{id}/toggle-active', [App\Http\Controllers\UserController::class, 'toggleActive']);
+        Route::patch('users/{id}/reset-password', [App\Http\Controllers\UserController::class, 'resetPassword']);
+    });
+
     // Classifications
     Route::get('klasifikasi/primer', [App\Http\Controllers\KlasifikasiController::class, 'getPrimers']);
     Route::get('klasifikasi/sekunder/{primer_id}', [App\Http\Controllers\KlasifikasiController::class, 'getSekunders']);

@@ -13,6 +13,7 @@ import {
     LogOut,
     Menu,
     X,
+    Users,
 } from "lucide-react";
 
 type MenuItem = {
@@ -28,6 +29,7 @@ const menu: MenuItem[] = [
     { name: "Riwayat Surat", icon: ClipboardList, href: "/umum/riwayat" },
     { name: "Buku Register", icon: ClipboardList, href: "/umum/buku-register", role: "sekretariat" },
     { name: "Notifikasi", icon: Bell, href: "/umum/notifikasi" },
+    { name: "Manajemen User", icon: Users, href: "/umum/users", role: "superadmin" },
 ];
 
 export default function Sidebar() {
@@ -102,6 +104,7 @@ export default function Sidebar() {
         kabag_tu: "Kabag TU",
         wakil_dekan: "Wakil Dekan",
         dekan: "Dekan",
+        superadmin: "Superadmin",
     };
 
     const navItems = menu.filter(item => !item.role || item.role === userData.role);
@@ -331,4 +334,3 @@ export default function Sidebar() {
         </>
     );
 }
-
