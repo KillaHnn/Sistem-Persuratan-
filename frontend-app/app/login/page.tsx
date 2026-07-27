@@ -74,6 +74,7 @@ export default function LoginPage() {
                     src="/images/bg-login.jpg"
                     alt="Background"
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 60vw"
                     className="object-cover brightness-75 hover:scale-105 transition-transform duration-1000"
                     priority
                 />
@@ -88,21 +89,21 @@ export default function LoginPage() {
             </div>
 
             {/* RIGHT - LOGIN FORM */}
-            <div className="flex items-center justify-center p-6 md:p-12 lg:p-20">
+            <div className="flex items-center justify-center p-4 sm:p-8 md:p-12 lg:p-20 min-h-screen">
                 <div className="w-full max-w-md">
-                    <div className="text-center mb-10">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-400 to-orange-600 text-white mb-6 shadow-xl shadow-orange-200 rotate-3 hover:rotate-0 transition-transform duration-300">
-                            <Mail className="w-10 h-10" />
+                    <div className="text-center mb-6 sm:mb-10">
+                        <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-orange-400 to-orange-600 text-white mb-4 sm:mb-6 shadow-xl shadow-orange-200 rotate-3 hover:rotate-0 transition-transform duration-300">
+                            <Mail className="w-8 h-8 sm:w-10 sm:h-10" />
                         </div>
-                        <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight">
                             Selamat Datang Kembali 👋
                         </h1>
-                        <p className="text-gray-500 font-medium">
+                        <p className="text-sm sm:text-base text-gray-500 font-medium">
                             Silakan masuk ke akun Anda untuk melanjutkan
                         </p>
                     </div>
 
-                    <div className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] p-10 border border-gray-100 relative overflow-hidden group animate-fade-in">
+                    <div className="bg-white rounded-3xl sm:rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] p-6 sm:p-8 md:p-10 border border-gray-100 relative overflow-hidden group animate-fade-in">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500"></div>
 
                         {/* Error Message */}

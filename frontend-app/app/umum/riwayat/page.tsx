@@ -51,7 +51,8 @@ export default function RiwayatPage() {
     useEffect(() => {
         const fetchSurats = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat`, {
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+                const res = await fetch(`${baseUrl}/api/umum/surat`, {
                     headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
                 });
                 if (!res.ok) throw new Error("Gagal memuat data");
@@ -77,22 +78,22 @@ export default function RiwayatPage() {
         new Date(d).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Riwayat Surat</h1>
-                    <p className="text-gray-500 mt-1">Semua permohonan surat yang pernah Anda ajukan</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Riwayat Surat</h1>
+                    <p className="text-sm sm:text-base text-gray-500 mt-1">Semua permohonan surat yang pernah Anda ajukan</p>
                 </div>
                 <Link href="/umum/buat-surat"
-                    className="flex items-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-100 active:scale-95">
+                    className="flex items-center justify-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-100 active:scale-95 text-sm font-medium w-full sm:w-auto">
                     <FilePlus2 size={18} />
-                    <span className="font-medium">Buat Surat Baru</span>
+                    <span>Buat Surat Baru</span>
                 </Link>
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col sm:flex-row gap-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex flex-col sm:flex-row gap-3">
                 {/* Search */}
                 <div className="flex items-center bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 flex-1 focus-within:ring-2 focus-within:ring-orange-100 transition">
                     <Search size={16} className="text-gray-400 mr-2 shrink-0" />
@@ -103,7 +104,7 @@ export default function RiwayatPage() {
 
                 {/* Jenis filter */}
                 <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)}
-                    className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-orange-100">
+                    className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-orange-100 w-full sm:w-auto">
                     <option value="semua">Semua Jenis</option>
                     {Object.entries(JENIS_MAP).map(([k, v]) => (
                         <option key={k} value={k}>{v}</option>
@@ -112,7 +113,7 @@ export default function RiwayatPage() {
             </div>
 
             {/* List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {error && (
                     <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl border border-red-100">
                         <AlertCircle size={18} />
@@ -125,7 +126,7 @@ export default function RiwayatPage() {
                         <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
                     ))
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
+                    <div className="text-center py-16 sm:py-20 bg-white rounded-3xl border border-gray-100">
                         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                             <FileText size={32} />
                         </div>
@@ -140,16 +141,16 @@ export default function RiwayatPage() {
                         const StIcon = st.icon;
                         return (
                             <Link key={surat.id} href={`/umum/riwayat/${surat.id}`}
-                                className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border border-gray-100 bg-white hover:border-orange-200 hover:shadow-md transition-all">
-                                <div className="flex items-start gap-4">
+                                className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border border-gray-100 bg-white hover:border-orange-200 hover:shadow-md transition-all gap-3 sm:gap-4">
+                                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
                                     <div className="p-3 bg-orange-50 text-orange-500 rounded-xl hidden sm:flex shrink-0">
                                         <FileText size={22} />
                                     </div>
-                                    <div className="min-w-0">
-                                        <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate">
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate text-sm sm:text-base">
                                             {surat.perihal}
                                         </h3>
-                                        <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-gray-500">
+                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-xs text-gray-500">
                                             <span className="bg-gray-100 px-2 py-0.5 rounded-md font-medium">
                                                 {JENIS_MAP[surat.jenis_surat] || surat.jenis_surat}
                                             </span>
@@ -164,7 +165,7 @@ export default function RiwayatPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 mt-4 sm:mt-0 shrink-0">
+                                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
                                     <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${st.color}`}>
                                         <StIcon size={12} />
                                         {st.label}

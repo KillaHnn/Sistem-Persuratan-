@@ -24,7 +24,7 @@ type Notifikasi = {
     created_at: string;
 };
 
-const API_BASE = `${process.env.NEXT_PUBLIC_API_URL}/api/umum`;
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api/umum`;
 
 // Tentukan ikon & warna berdasarkan kata kunci judul
 function getNotifStyle(judul: string) {
@@ -115,15 +115,15 @@ export default function NotifikasiPage() {
     const unreadCount = notifs.filter((n) => !n.is_read).length;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-3">
-                        <Bell className="text-orange-500" size={32} />
+                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent flex items-center gap-2.5 sm:gap-3">
+                        <Bell className="text-orange-500 shrink-0" size={28} />
                         Notifikasi
                     </h1>
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-sm sm:text-base text-gray-500 mt-1">
                         {loading
                             ? "Memuat pemberitahuan..."
                             : unreadCount > 0
@@ -136,7 +136,7 @@ export default function NotifikasiPage() {
                     <button
                         onClick={markAllRead}
                         disabled={markingAll}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-50 text-orange-600 text-sm font-medium hover:bg-orange-100 transition-colors disabled:opacity-60"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-50 text-orange-600 text-sm font-medium hover:bg-orange-100 transition-colors disabled:opacity-60 w-full sm:w-auto"
                     >
                         {markingAll ? (
                             <Loader2 size={16} className="animate-spin" />
@@ -150,10 +150,10 @@ export default function NotifikasiPage() {
 
             {/* List Notifikasi */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-800">Kotak Masuk Pemberitahuan</h2>
+                <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-800">Kotak Masuk Pemberitahuan</h2>
                     {!loading && notifs.length > 0 && (
-                        <span className="text-sm text-gray-400">{notifs.length} pemberitahuan</span>
+                        <span className="text-xs sm:text-sm text-gray-400">{notifs.length} pemberitahuan</span>
                     )}
                 </div>
 

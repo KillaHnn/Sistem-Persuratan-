@@ -23,10 +23,12 @@ export default function BukuRegisterPage() {
 
     const getToken = () => typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda`, {
+            const res = await fetch(`${API_BASE}/api/umum/buku-agenda`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });
             const result = await res.json();
@@ -42,7 +44,7 @@ export default function BukuRegisterPage() {
 
     const fetchDropdown = async () => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda-dropdown`, {
+            const res = await fetch(`${API_BASE}/api/umum/buku-agenda-dropdown`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });
             const result = await res.json();
@@ -101,8 +103,8 @@ export default function BukuRegisterPage() {
         try {
             const isEdit = !!formData.id;
             const url = isEdit 
-                ? `${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda/${formData.id}`
-                : `${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda`;
+                ? `${API_BASE}/api/umum/buku-agenda/${formData.id}`
+                : `${API_BASE}/api/umum/buku-agenda`;
                 
             const method = isEdit ? "PUT" : "POST";
             
@@ -133,7 +135,7 @@ export default function BukuRegisterPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/buku-agenda/${id}`, {
+            const res = await fetch(`${API_BASE}/api/umum/buku-agenda/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             });
@@ -153,28 +155,28 @@ export default function BukuRegisterPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="p-4 bg-orange-50 text-orange-500 rounded-2xl">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-3.5 sm:p-4 bg-orange-50 text-orange-500 rounded-2xl shrink-0">
                         <BookOpen size={28} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Buku Register Surat</h1>
-                        <p className="text-sm text-gray-500">Pencatatan digital nomor surat keluar (Sekretariat)</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Buku Register Surat</h1>
+                        <p className="text-xs sm:text-sm text-gray-500">Pencatatan digital nomor surat keluar (Sekretariat)</p>
                     </div>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl transition font-medium text-sm"
+                    className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl transition font-medium text-sm w-full sm:w-auto"
                 >
                     <Plus size={18} />
-                    Tambah Register
+                    <span>Tambah Register</span>
                 </button>
             </div>
 
             {/* List */}
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div className="relative w-full max-w-sm">
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
@@ -188,7 +190,7 @@ export default function BukuRegisterPage() {
                 </div>
                 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-gray-600">
+                    <table className="w-full text-left text-sm text-gray-600 min-w-[600px]">
                         <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
                             <tr>
                                 <th className="px-6 py-4">Nomor Surat</th>
@@ -256,9 +258,9 @@ export default function BukuRegisterPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                            <h3 className="font-bold text-lg text-gray-900">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                        <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900">
                                 {formData.id ? "Edit Register Surat" : "Tambah Register Surat"}
                             </h3>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 p-1 bg-white rounded-full border border-gray-200">
@@ -266,7 +268,7 @@ export default function BukuRegisterPage() {
                             </button>
                         </div>
                         
-                        <div className="p-6 overflow-y-auto">
+                        <div className="p-5 sm:p-6 overflow-y-auto">
                             <form id="registerForm" onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">Pilih Nomor Surat (Opsional / Terhubung Sistem)</label>
@@ -296,7 +298,7 @@ export default function BukuRegisterPage() {
                                     />
                                 </div>
                                 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Tanggal Surat</label>
                                         <input
