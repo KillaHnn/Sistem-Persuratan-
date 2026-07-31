@@ -98,7 +98,7 @@ export default function LoginPage() {
                             <Mail className="w-8 h-8 sm:w-10 sm:h-10" />
                         </div>
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3 tracking-tight">
-                            Selamat Datang Kembali 👋
+                            Selamat Datang Kembali
                         </h1>
                         <p className="text-sm sm:text-base text-gray-500 font-medium">
                             Silakan masuk ke akun Anda untuk melanjutkan
@@ -138,9 +138,7 @@ export default function LoginPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center ml-1">
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
-                                    <button type="button" className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors uppercase tracking-widest">
-                                        Lupa?
-                                    </button>
+                                    
                                 </div>
                                 <div className="relative group/input">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within/input:text-orange-500 transition-colors">

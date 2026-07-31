@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Backend tidak merespon dalam format JSON" }, { status: 502 });
     }
 
-    // ✅ GANTI BAGIAN INI — tambah log + errors
+    // GANTI BAGIAN INI — tambah log + errors
     if (!res.ok) {
       console.error("Backend Error Response:", JSON.stringify(data, null, 2)); // <-- lihat di terminal
       return NextResponse.json(

@@ -83,7 +83,7 @@ export default function RegisterPage() {
                             <User className="w-10 h-10" />
                         </div>
                         <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                            Buat Akun Baru ✨
+                            Buat Akun Baru
                         </h1>
                         <p className="text-gray-500 font-medium">
                             Isi form di bawah ini untuk mendaftar sebagai Pemohon.
