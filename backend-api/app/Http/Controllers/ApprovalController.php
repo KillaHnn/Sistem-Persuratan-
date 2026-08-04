@@ -6,11 +6,57 @@ use App\Models\SuratUmum;
 use App\Models\ApprovalLog;
 use App\Models\DokumenSurat;
 use App\Models\NotifikasiSurat;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ApprovalController extends Controller
 {
+    // ── Helper: buat nama file berformat standar ────────────────────────────
+    /**
+     * Format: {JenisSurat}_{NomorUrut}_{DDMMYY}_{NamaPemohon}_{tipe}_v{versi}.{ext}
+     * Contoh: SuratTugas_001_040826_BudiSantoso_draft_v1.pdf
+     *
+     * Jenis surat, nomor urut, tanggal, dan nama pemohon diambil dari objek $surat.
+     */
+    private function generateNamaFile(
+        SuratUmum $surat,
+        string $tipe,
+        int $versi,
+        string $ext
+    ): string {
+        // Jenis surat → singkatan resmi
+        $jenisMap = [
+            'undangan'         => 'UND',
+            'surat_tugas'      => 'ST',
+            'surat_pengantar'  => 'SP',
+            'surat_keterangan' => 'SK',
+            'lainnya'          => 'LN',
+        ];
+        $jenis = $jenisMap[$surat->jenis_surat] ?? strtoupper(substr($surat->jenis_surat, 0, 3));
+
+        // Nomor urut dari nomor_surat — ambil angka terakhir, atau id surat sebagai fallback
+        $nomorUrut = '001';
+        if ($surat->nomor_surat) {
+            // nomor_surat biasanya format B-XXX/... — ambil angka pertama yang ditemukan
+            if (preg_match('/\d+/', $surat->nomor_surat, $m)) {
+                $nomorUrut = str_pad($m[0], 3, '0', STR_PAD_LEFT);
+            }
+        } else {
+            $nomorUrut = str_pad($surat->id, 3, '0', STR_PAD_LEFT);
+        }
+
+        // Tanggal permohonan: DDMMYY
+        $tgl = $surat->tgl_permohonan
+            ? Carbon::parse($surat->tgl_permohonan)->format('dmy')
+            : now()->format('dmy');
+
+        // Nama pemohon: hapus spasi & karakter non-alfanumerik
+        $nama = preg_replace('/[^A-Za-z0-9]/', '', $surat->pemohon->name ?? 'Pemohon');
+
+        return "{$jenis}_{$nomorUrut}_{$tgl}_{$nama}_{$tipe}_v{$versi}.{$ext}";
+    }
+
     // ── Helper: kirim notifikasi ke sekumpulan user ─────────────────────────
     private function sendNotif(int $suratId, array $userIds, string $judul, string $pesan): void
     {
@@ -59,16 +105,16 @@ class ApprovalController extends Controller
             ->max('versi') ?? 0;
         $newVersion = $latestVersion + 1;
 
-        // Upload file draf
-        $file         = $request->file('file');
-        $originalName = $file->getClientOriginalName();
-        $filename     = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
-        $path         = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
+        // Upload file draf — nama file menggunakan format standar
+        $file      = $request->file('file');
+        $ext       = $file->getClientOriginalExtension();
+        $filename  = $this->generateNamaFile($surat, $tipeDokumen, $newVersion, $ext);
+        $path      = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
         DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => $tipeDokumen,
-            'nama_file'     => $originalName,
+            'nama_file'     => $filename,
             'path_file'     => $path,
             'versi'         => $newVersion,
             'uploaded_by'   => $user->id,
@@ -362,16 +408,16 @@ class ApprovalController extends Controller
             ->max('versi') ?? 0;
         $newVersion = $latestVersion + 1;
 
-        // Upload file surat TTD
-        $file         = $request->file('file');
-        $originalName = $file->getClientOriginalName();
-        $filename     = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v{$newVersion}." . $file->getClientOriginalExtension();
-        $path         = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
+        // Upload file surat TTD — nama file menggunakan format standar
+        $file      = $request->file('file');
+        $ext       = $file->getClientOriginalExtension();
+        $filename  = $this->generateNamaFile($surat, 'surat_ttd', $newVersion, $ext);
+        $path      = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
         DokumenSurat::create([
             'surat_umum_id' => $surat->id,
             'tipe_dokumen'  => 'surat_ttd',
-            'nama_file'     => $originalName,
+            'nama_file'     => $filename,
             'path_file'     => $path,
             'versi'         => $newVersion,
             'uploaded_by'   => $user->id,
@@ -421,7 +467,8 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Sekretariat menandai surat sebagai diarsipkan.
+     * Sekretariat mengarsipkan surat — bisa dari status 'selesai' (berhasil) atau 'dikembalikan' (ditolak).
+     * Kolom hasil_arsip diset otomatis berdasarkan status sebelum diarsipkan.
      */
     public function arsipkan(Request $request, $id)
     {
@@ -432,24 +479,30 @@ class ApprovalController extends Controller
             return response()->json(['message' => 'Hanya sekretariat yang dapat mengarsipkan surat'], 403);
         }
 
-        if ($surat->status !== 'selesai') {
-            return response()->json(['message' => 'Surat harus berstatus selesai untuk diarsipkan'], 422);
+        if (!in_array($surat->status, ['selesai', 'dikembalikan'])) {
+            return response()->json(['message' => 'Surat harus berstatus selesai atau dikembalikan untuk diarsipkan'], 422);
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($surat, $request, $user) {
+        // Tentukan hasil arsip berdasarkan status sebelumnya
+        $hasilArsip = $surat->status === 'selesai' ? 'berhasil' : 'ditolak';
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($surat, $request, $user, $hasilArsip) {
             $surat->update([
                 'status'      => 'diarsipkan',
                 'tgl_selesai' => now(),
+                'hasil_arsip' => $hasilArsip,
             ]);
 
-            \App\Models\NomorSuratHistory::create([
-                'surat_umum_id'  => $surat->id,
-                'nomor_surat_id' => $surat->nomor_surat_id,
-                'generated_by'   => $user->id,
-                'status_step'    => 'ready_for_user',
-            ]);
+            if ($surat->nomor_surat_id) {
+                \App\Models\NomorSuratHistory::create([
+                    'surat_umum_id'  => $surat->id,
+                    'nomor_surat_id' => $surat->nomor_surat_id,
+                    'generated_by'   => $user->id,
+                    'status_step'    => 'ready_for_user',
+                ]);
+            }
 
-            // Dapatkan path_digital dari dokumen surat_ttd terbaru
+            // Dapatkan path_digital dari dokumen surat_ttd terbaru (jika ada)
             $signedDokumen = $surat->dokumens()->where('tipe_dokumen', 'surat_ttd')->latest('versi')->first();
             $pathDigital   = $signedDokumen ? $signedDokumen->path_file : 'Tidak ada dokumen';
 
@@ -464,26 +517,34 @@ class ApprovalController extends Controller
                 ]);
             }
 
+            $catatanLog = $hasilArsip === 'berhasil'
+                ? 'Surat berhasil diarsipkan oleh sekretariat'
+                : 'Surat yang dikembalikan/ditolak telah diarsipkan oleh sekretariat';
+
             ApprovalLog::create([
                 'surat_umum_id' => $surat->id,
                 'approver_id'   => $user->id,
                 'aksi'          => 'disetujui',
-                'catatan'       => 'Surat telah diarsipkan oleh sekretariat',
+                'catatan'       => $catatanLog,
             ]);
 
             $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-            // Notifikasi ke pemohon: surat selesai diarsipkan
+            $pesanNotif = $hasilArsip === 'berhasil'
+                ? "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah selesai dan resmi diarsipkan oleh sekretariat."
+                : "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} yang dikembalikan telah diarsipkan oleh sekretariat.";
+
+            // Notifikasi ke pemohon
             NotifikasiSurat::create([
                 'surat_umum_id' => $surat->id,
                 'user_id'       => $surat->pemohon_id,
-                'judul'         => 'Surat Selesai & Terarsipkan',
-                'pesan'         => "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah selesai dan resmi diarsipkan oleh sekretariat.",
+                'judul'         => $hasilArsip === 'berhasil' ? 'Surat Selesai & Terarsipkan' : 'Surat Ditolak & Diarsipkan',
+                'pesan'         => $pesanNotif,
             ]);
         });
 
         return response()->json([
-            'message' => 'Surat berhasil dikirim ke pemohon',
+            'message' => 'Surat berhasil diarsipkan',
             'data'    => $surat->fresh(),
         ]);
     }

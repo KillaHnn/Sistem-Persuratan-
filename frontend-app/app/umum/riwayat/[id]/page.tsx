@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-    FileText, Clock, CheckCircle, RotateCcw, Archive,
+    FileText, Clock, CheckCircle, XCircle, RotateCcw, Archive,
     ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle
 } from "lucide-react";
 
@@ -451,42 +451,93 @@ export default function DetailSuratPage() {
                 <div className="relative">
                     {/* Hidden file input for upload actions */}
                     <input type="file" id="file-upload-input" className="hidden" accept=".pdf,.docx" onChange={handleFileChange} />
-                    {/* Vertical line */}
-                    <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-100" />
 
-                    <div className="space-y-6">
-                        {APPROVAL_STEPS.map((step, i) => {
-                            const isDone = surat.status === "dikembalikan"
-                                ? i === 0
-                                : STATUS_ORDER.indexOf(step.status) <= currentStepIndex;
-                            const isCurrent = step.status === surat.status;
+                    {/* Tentukan apakah surat ditolak */}
+                    {(() => {
+                        const isRejected = surat.status === "dikembalikan" || 
+                            (surat.status === "diarsipkan" && surat.hasil_arsip === "ditolak");
 
-                            return (
-                                <div key={step.status} className="flex items-start gap-5">
-                                    <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                                        isCurrent && surat.status === "dikembalikan"
-                                            ? "border-red-500 bg-red-100"
-                                            : isDone
-                                                ? "border-green-400 bg-green-400"
-                                                : "border-gray-200 bg-white"
-                                    }`}>
-                                        {isDone && surat.status !== "dikembalikan"
-                                            ? <CheckCircle size={16} className="text-white" />
-                                            : isCurrent && surat.status === "dikembalikan"
-                                                ? <RotateCcw size={14} className="text-red-500" />
-                                                : <span className="w-2 h-2 rounded-full bg-gray-300" />
-                                        }
-                                    </div>
-                                    <div className="pt-1">
-                                        <p className={`text-sm font-semibold ${isDone ? "text-gray-800" : "text-gray-400"}`}>
-                                            {step.label}
-                                        </p>
-                                        <p className="text-xs text-gray-400">{step.actor}</p>
-                                    </div>
+                        // Langkah-langkah yang ditampilkan — kalau ditolak, ganti step setelah yang dicapai
+                        const stepsToRender = [...APPROVAL_STEPS];
+
+                        // Hitung berapa step yang sudah dilalui sebelum ditolak
+                        // Cek dari approval_logs: step terakhir sebelum dikembalikan
+                        let rejectedAfterIndex = 0;
+                        if (isRejected) {
+                            // Cari step sejauh mana sudah diproses berdasarkan approval_logs
+                            const logAksis = (surat.approval_logs || []).map((l: any) => l.aksi);
+                            if (logAksis.includes("diverifikasi")) rejectedAfterIndex = 2; // sampai verifikasi
+                            else if (logAksis.includes("diproses")) rejectedAfterIndex = 1;  // sampai diproses
+                            else rejectedAfterIndex = 0; // langsung ditolak dari menunggu
+                        }
+
+                        return (
+                            <>
+                                {/* Vertical line */}
+                                <div className={`absolute left-4 top-4 bottom-4 w-0.5 ${
+                                    isRejected ? "bg-red-100" : "bg-gray-100"
+                                }`} />
+
+                                <div className="space-y-6">
+                                    {stepsToRender.map((step, i) => {
+                                        // Step sudah dilalui (normal/berjalan)
+                                        const isDoneNormal = !isRejected && STATUS_ORDER.indexOf(step.status) <= currentStepIndex;
+
+                                        // Step sudah dilalui sebelum ditolak
+                                        const isDoneBeforeRejection = isRejected && i <= rejectedAfterIndex;
+
+                                        // Step ini adalah step saat ini dan surat ditolak (hanya step pertama yg done)
+                                        const isCurrent = step.status === surat.status;
+
+                                        // Sembunyikan step setelah titik penolakan jika ditolak
+                                        if (isRejected && i > rejectedAfterIndex) return null;
+
+                                        return (
+                                            <div key={step.status} className="flex items-start gap-5">
+                                                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                                                    isDoneBeforeRejection
+                                                        ? "border-red-400 bg-red-400"     // merah — dilalui sebelum ditolak
+                                                        : isDoneNormal
+                                                            ? "border-green-400 bg-green-400" // hijau — selesai normal
+                                                            : "border-gray-200 bg-white"      // abu — belum diproses
+                                                }`}>
+                                                    {isDoneBeforeRejection
+                                                        ? <XCircle size={16} className="text-white" />
+                                                        : isDoneNormal
+                                                            ? <CheckCircle size={16} className="text-white" />
+                                                            : <span className="w-2 h-2 rounded-full bg-gray-300" />
+                                                    }
+                                                </div>
+                                                <div className="pt-1">
+                                                    <p className={`text-sm font-semibold ${
+                                                        isDoneBeforeRejection ? "text-red-600"
+                                                        : isDoneNormal ? "text-gray-800"
+                                                        : "text-gray-400"
+                                                    }`}>
+                                                        {step.label}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400">{step.actor}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Step tambahan: Surat Ditolak (hanya muncul jika ditolak) */}
+                                    {isRejected && (
+                                        <div className="flex items-start gap-5">
+                                            <div className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 border-red-500 bg-red-500">
+                                                <XCircle size={16} className="text-white" />
+                                            </div>
+                                            <div className="pt-1">
+                                                <p className="text-sm font-semibold text-red-600">Surat Ditolak / Dikembalikan</p>
+                                                <p className="text-xs text-gray-400">Sekretariat</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </>
+                        );
+                    })()}
                 </div>
             </div>
 
@@ -585,7 +636,7 @@ export default function DetailSuratPage() {
             )}
 
             {/* Panel Tindakan Validasi */}
-            {user && surat.status !== "dikembalikan" && (
+            {user && surat.status !== "diarsipkan" && (
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8 space-y-4">
                     <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
                     
@@ -640,7 +691,17 @@ export default function DetailSuratPage() {
                                     disabled={actionLoading}
                                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
                                 >
-                                    {actionLoading ? "Memproses..." : "Tandai Diarsipkan"}
+                                    {actionLoading ? "Memproses..." : "Arsipkan Surat (Berhasil)"}
+                                </button>
+                            )}
+
+                            {surat.status === "dikembalikan" && (
+                                <button
+                                    onClick={() => handleApprovalAction("arsipkan")}
+                                    disabled={actionLoading}
+                                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                >
+                                    {actionLoading ? "Memproses..." : "Arsipkan Surat (Ditolak)"}
                                 </button>
                             )}
                         </div>

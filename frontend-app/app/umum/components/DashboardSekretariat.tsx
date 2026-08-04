@@ -15,7 +15,7 @@ export default function DashboardSekretariat({ surats, stats, filtered, formatDa
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         {stats && stats.map((stat: any, i: number) => (
           <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-0.5 group cursor-default">
             <div className="flex items-center justify-between mb-4">

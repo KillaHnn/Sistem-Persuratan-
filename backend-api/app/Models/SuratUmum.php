@@ -21,6 +21,7 @@ class SuratUmum extends Model
         'handler_id',
         'tgl_permohonan',
         'tgl_selesai',
+        'hasil_arsip',
         // classification foreign keys and nomor surat reference
         'klasifikasi_primer_id',
         'klasifikasi_sekunder_id',

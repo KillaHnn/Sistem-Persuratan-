@@ -95,7 +95,7 @@ export default function DashboardPage() {
         }
     };
 
-    // Stats
+    // Stats — sekretariat mendapat card tambahan "Diarsipkan"
     const stats = [
         { title: "Total Surat",   value: surats.length,                                                                                    icon: FileText,    color: "bg-orange-500", text: "text-orange-500" },
         { title: "Diproses",      value: surats.filter(s => ["menunggu", "diproses", "diverifikasi", "ditandatangani"].includes(s.status)).length, icon: Clock,       color: "bg-blue-500",   text: "text-blue-500" },
@@ -103,6 +103,16 @@ export default function DashboardPage() {
         { title: "Dikembalikan",  value: surats.filter(s => s.status === "dikembalikan").length,                                           icon: XCircle,     color: "bg-red-500",    text: "text-red-500" },
     ];
 
+    // Stats khusus sekretariat (5 card, termasuk Diarsipkan)
+    const statsSekretariat = [
+        { title: "Total Surat",   value: surats.length,                                                                                    icon: FileText,    color: "bg-orange-500", text: "text-orange-500" },
+        { title: "Diproses",      value: surats.filter(s => ["menunggu", "diproses", "diverifikasi", "ditandatangani"].includes(s.status)).length, icon: Clock,       color: "bg-blue-500",   text: "text-blue-500" },
+        { title: "Selesai",       value: surats.filter(s => s.status === "selesai").length,                                                icon: CheckCircle, color: "bg-green-500",  text: "text-green-500" },
+        { title: "Diarsipkan",    value: surats.filter(s => s.status === "diarsipkan").length,                                             icon: Archive,     color: "bg-purple-500", text: "text-purple-500" },
+        { title: "Dikembalikan",  value: surats.filter(s => s.status === "dikembalikan").length,                                           icon: XCircle,     color: "bg-red-500",    text: "text-red-500" },
+    ];
+
+    // Filter tabs umum
     const filters = [
         { key: "semua", label: "Semua" },
         { key: "diproses", label: "Diproses" },
@@ -110,13 +120,28 @@ export default function DashboardPage() {
         { key: "selesai_tab", label: "Selesai" },
     ];
 
+    // Filter tabs khusus sekretariat
+    const filtersSekretariat = [
+        { key: "semua", label: "Semua" },
+        { key: "diproses", label: "Diproses" },
+        { key: "berhasil", label: "Berhasil" },
+        { key: "diarsipkan_tab", label: "Diarsipkan" },
+        { key: "dikembalikan", label: "Dikembalikan" },
+    ];
+
+    const activeFilters = userRole === "sekretariat" ? filtersSekretariat : filters;
+
     const filtered = activeFilter === "semua"
         ? surats
         : activeFilter === "selesai_tab"
             ? surats.filter(s => s.status === "selesai" || s.status === "diarsipkan")
-            : activeFilter === "diproses"
-                ? surats.filter(s => ["menunggu", "diproses", "diverifikasi", "ditandatangani"].includes(s.status))
-                : surats.filter(s => s.status === activeFilter);
+            : activeFilter === "berhasil"
+                ? surats.filter(s => s.status === "selesai")
+                : activeFilter === "diarsipkan_tab"
+                    ? surats.filter(s => s.status === "diarsipkan")
+                    : activeFilter === "diproses"
+                        ? surats.filter(s => ["menunggu", "diproses", "diverifikasi", "ditandatangani"].includes(s.status))
+                        : surats.filter(s => s.status === activeFilter);
 
     const formatDate = (dateStr: string) =>
         new Date(dateStr).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
@@ -230,14 +255,15 @@ export default function DashboardPage() {
     );
 
     // Kumpulan props yang akan dioper ke komponen anak
-    const sharedProps = { surats, stats, filters, activeFilter, setActiveFilter, filtered, formatDate, STATUS_MAP, JENIS_MAP, renderListContainer };
+    const sharedProps = { surats, stats, filters: activeFilters, activeFilter, setActiveFilter, filtered, formatDate, STATUS_MAP, JENIS_MAP, renderListContainer };
+    const sekretariatProps = { ...sharedProps, stats: statsSekretariat };
 
     // Render komponen berdasarkan role user
     switch (userRole) {
         case "pemohon":
             return <DashboardPemohon {...sharedProps} userName={userName} />;
         case "sekretariat":
-            return <DashboardSekretariat {...sharedProps} />;
+            return <DashboardSekretariat {...sekretariatProps} />;
         case "kabag_tu":
             return <DashboardKabagTU {...sharedProps} />;
         case "wakil_dekan":

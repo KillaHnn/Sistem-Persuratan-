@@ -201,7 +201,7 @@ export default function RegisterPage() {
                                     "Daftar Sekarang"
                                 )}
                             </button>
-                            
+
                             <div className="text-center mt-6">
                                 <p className="text-sm text-gray-500 font-medium">
                                     Sudah punya akun? <Link href="/login" className="text-orange-600 font-bold hover:underline">Masuk</Link>

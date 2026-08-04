@@ -40,6 +40,7 @@ export default function RiwayatPage() {
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [filterJenis, setFilterJenis] = useState("semua");
+    const [filterStatus, setFilterStatus] = useState("semua");
     const [userRole, setUserRole] = useState<string>("pemohon");
 
     const getToken = () => {
@@ -80,11 +81,30 @@ export default function RiwayatPage() {
         return STATUS_MAP[status] || { label: status, color: "bg-gray-100 text-gray-700 border-gray-200", icon: FileText };
     };
 
+    // Tab filter khusus sekretariat — hanya surat yang sudah diarsipkan
+    const sekretariatTabs = [
+        { key: "semua",        label: "Semua Arsip" },
+        { key: "berhasil",     label: "Arsip (Selesai/Berhasil)" },
+        { key: "ditolak",      label: "Arsip (Dikembalikan/Ditolak)" },
+    ];
+
+    // Logika filter gabungan
     const filtered = surats.filter(s => {
         const matchSearch = s.perihal.toLowerCase().includes(search.toLowerCase()) ||
             (s.nomor_surat || "").toLowerCase().includes(search.toLowerCase());
         const matchJenis = filterJenis === "semua" || s.jenis_surat === filterJenis;
-        return matchSearch && matchJenis;
+
+        let matchStatus = true;
+        if (userRole === "sekretariat") {
+            // HANYA tampilkan surat yang sudah diarsipkan
+            if (s.status !== "diarsipkan") return false;
+
+            // Filter tab berdasarkan hasil arsip (berhasil atau ditolak)
+            if (filterStatus === "berhasil")      matchStatus = s.hasil_arsip === "berhasil";
+            else if (filterStatus === "ditolak")  matchStatus = s.hasil_arsip === "ditolak";
+            // filterStatus === "semua" → semua arsip tampil
+        }
+        return matchSearch && matchJenis && matchStatus;
     });
 
     const formatDate = (d: string) =>
@@ -96,7 +116,11 @@ export default function RiwayatPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Riwayat Surat</h1>
-                    <p className="text-sm sm:text-base text-gray-500 mt-1">Semua permohonan surat yang pernah Anda ajukan</p>
+                    <p className="text-sm sm:text-base text-gray-500 mt-1">
+                        {userRole === "sekretariat"
+                            ? "Semua permohonan surat yang masuk ke sekretariat"
+                            : "Semua permohonan surat yang pernah Anda ajukan"}
+                    </p>
                 </div>
                 <Link href="/umum/buat-surat"
                     className="flex items-center justify-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-100 active:scale-95 text-sm font-medium w-full sm:w-auto">
@@ -106,7 +130,25 @@ export default function RiwayatPage() {
             </div>
 
             {/* Filter Bar */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex flex-col sm:flex-row gap-3">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex flex-col gap-3">
+                {/* Tab Filter Sekretariat */}
+                {userRole === "sekretariat" && (
+                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200 overflow-x-auto gap-1">
+                        {sekretariatTabs.map(tab => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setFilterStatus(tab.key)}
+                                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                                    filterStatus === tab.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3">
                 {/* Search */}
                 <div className="flex items-center bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 flex-1 focus-within:ring-2 focus-within:ring-orange-100 transition">
                     <Search size={16} className="text-gray-400 mr-2 shrink-0" />
@@ -123,6 +165,7 @@ export default function RiwayatPage() {
                         <option key={k} value={k}>{v}</option>
                     ))}
                 </select>
+                </div>
             </div>
 
             {/* List */}
