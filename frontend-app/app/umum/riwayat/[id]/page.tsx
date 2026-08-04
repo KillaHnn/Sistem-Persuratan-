@@ -55,9 +55,11 @@ export default function DetailSuratPage() {
     const [sekunders, setSekunders] = useState<any[]>([]);
     const [tersiers, setTersiers] = useState<any[]>([]);
 
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
     useEffect(() => {
         if (showProsesModal && primers.length === 0) {
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/primer`, {
+            fetch(`${API_BASE}/api/klasifikasi/primer`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -67,7 +69,7 @@ export default function DetailSuratPage() {
 
     useEffect(() => {
         if (klasifikasi.primerId) {
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
+            fetch(`${API_BASE}/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -77,7 +79,7 @@ export default function DetailSuratPage() {
 
     useEffect(() => {
         if (klasifikasi.sekunderId) {
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
+            fetch(`${API_BASE}/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
             .then(res => res.json())
@@ -108,7 +110,7 @@ export default function DetailSuratPage() {
     useEffect(() => {
         const fetchDetail = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat/${params.id}`, {
+                const res = await fetch(`${API_BASE}/api/umum/surat/${params.id}`, {
                     headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" },
                 });
                 if (!res.ok) throw new Error("Surat tidak ditemukan");
@@ -163,7 +165,7 @@ export default function DetailSuratPage() {
                 headers["Content-Type"] = "application/json";
             }
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat/${params.id}/${action}`, {
+            const res = await fetch(`${API_BASE}/api/umum/surat/${params.id}/${action}`, {
                 method: "POST",
                 headers,
                 body,
@@ -246,20 +248,20 @@ export default function DetailSuratPage() {
             </button>
 
             {/* Header Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="p-4 bg-orange-50 text-orange-500 rounded-2xl">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="p-3 sm:p-4 bg-orange-50 text-orange-500 rounded-2xl shrink-0">
                             <FileText size={28} />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
                                 {JENIS_MAP[surat.jenis_surat] || surat.jenis_surat}
                             </span>
-                            <h1 className="text-xl font-bold text-gray-900 mt-0.5">{surat.perihal}</h1>
+                            <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5">{surat.perihal}</h1>
                         </div>
                     </div>
-                    <span className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold shrink-0 ${statusInfo.bg} ${statusInfo.color}`}>
+                    <span className={`self-start sm:self-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold shrink-0 ${statusInfo.bg} ${statusInfo.color}`}>
                         {statusInfo.label}
                     </span>
                 </div>
@@ -365,8 +367,8 @@ export default function DetailSuratPage() {
 
             {/* Modal Proses Sekretariat */}
             {showProsesModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300 overflow-y-auto pt-20 pb-20">
-                    <div className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
                         <h3 className="text-lg font-bold text-gray-900">Proses & Buat Nomor Surat</h3>
                         <p className="text-sm text-gray-500">
                             Pilih klasifikasi untuk men-generate nomor surat dan unggah draft dokumen awal.
@@ -442,7 +444,7 @@ export default function DetailSuratPage() {
             )}
 
             {/* Progress Tracker */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8">
                 <h2 className="text-base font-bold text-gray-800 mb-6">Progres Persetujuan</h2>
                 <div className="relative">
                     {/* Hidden file input for upload actions */}
@@ -488,7 +490,7 @@ export default function DetailSuratPage() {
 
             {/* Detail Isi Surat */}
             {detail && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8">
                     <h2 className="text-base font-bold text-gray-800 mb-6">Detail Isi Surat</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {Object.entries(detail)
@@ -518,7 +520,7 @@ export default function DetailSuratPage() {
 
             {/* Approval Logs */}
             {surat.approval_logs?.length > 0 && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8">
                     <h2 className="text-base font-bold text-gray-800 mb-6 flex items-center gap-2">
                         <MessageSquare size={18} className="text-orange-500" />
                         Catatan Proses
@@ -551,7 +553,7 @@ export default function DetailSuratPage() {
 
             {/* Dokumen Lampiran */}
             {surat.dokumens?.length > 0 && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8">
                     <h2 className="text-base font-bold text-gray-800 mb-6 flex items-center gap-2">
                         <Paperclip size={18} className="text-orange-500" />
                         Dokumen & Lampiran
@@ -559,7 +561,7 @@ export default function DetailSuratPage() {
                     <div className="space-y-3">
                         {surat.dokumens.map((dok: any) => (
                             <a key={dok.id}
-                                href={`${process.env.NEXT_PUBLIC_API_URL}/storage/${dok.path_file}`}
+                                href={`${API_BASE}/storage/${dok.path_file}`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 border border-transparent hover:border-orange-200 rounded-2xl transition group">
                                 <div className="flex items-center gap-3">
@@ -582,7 +584,7 @@ export default function DetailSuratPage() {
 
             {/* Panel Tindakan Validasi */}
             {user && surat.status !== "dikembalikan" && (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-4">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8 space-y-4">
                     <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
                     
                     {actionError && (

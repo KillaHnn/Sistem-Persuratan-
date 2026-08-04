@@ -78,7 +78,8 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat`, {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const res = await fetch(`${baseUrl}/api/umum/surat`, {
                 headers: {
                     Authorization: `Bearer ${getToken()}`,
                     Accept: "application/json",
@@ -122,14 +123,14 @@ export default function DashboardPage() {
     // Helper function untuk merender isi list agar tidak duplikasi code di komponen anak
     const renderListContainer = (titleLabel: string) => (
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">{titleLabel}</h2>
-                <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200 overflow-x-auto gap-1">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">{titleLabel}</h2>
+                <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200 overflow-x-auto gap-1 w-full sm:w-auto">
                     {filters.map((f) => (
                         <button
                             key={f.key}
                             onClick={() => setActiveFilter(f.key)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
                                 activeFilter === f.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                             }`}
                         >
@@ -139,7 +140,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
                 {error && (
                     <div className="flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-2xl mb-4 border border-red-100">
                         <AlertCircle size={18} />
@@ -154,7 +155,7 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-16">
+                    <div className="text-center py-12 sm:py-16">
                         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                             <FileText size={32} />
                         </div>
@@ -164,7 +165,7 @@ export default function DashboardPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                         {filtered.map((surat) => {
                             const statusInfo = STATUS_MAP[surat.status] || { label: surat.status, color: "bg-gray-100 text-gray-700 border-gray-200", icon: FileText };
                             const StatusIcon = statusInfo.icon;
@@ -172,18 +173,18 @@ export default function DashboardPage() {
                                 <Link
                                     key={surat.id}
                                     href={`/umum/riwayat/${surat.id}`}
-                                    className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all bg-white cursor-pointer"
+                                    className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all bg-white cursor-pointer gap-3 sm:gap-4"
                                 >
-                                    <div className="flex items-start gap-4">
+                                    <div className="flex items-start gap-3 sm:gap-4 min-w-0">
                                         <div className="p-3 bg-orange-50 text-orange-500 rounded-xl hidden sm:flex shrink-0">
                                             <FileText size={22} />
                                         </div>
-                                        <div className="min-w-0">
-                                            <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate text-sm sm:text-base">
                                                 {surat.perihal}
                                             </h3>
-                                            <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-gray-500">
-                                                <span className="bg-gray-100 px-2 py-0.5 rounded-md">
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-xs text-gray-500">
+                                                <span className="bg-gray-100 px-2 py-0.5 rounded-md font-medium">
                                                     {JENIS_MAP[surat.jenis_surat] || surat.jenis_surat}
                                                 </span>
                                                 <span>•</span>
@@ -204,7 +205,7 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-4 sm:mt-0 shrink-0">
+                                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
                                         <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${statusInfo.color}`}>
                                             <StatusIcon size={12} />
                                             {statusInfo.label}

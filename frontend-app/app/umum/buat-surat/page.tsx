@@ -51,7 +51,8 @@ export default function BuatSuratPage() {
             Object.entries(detail).forEach(([k, v]) => formData.append(`detail[${k}]`, v));
             if (lampiran) formData.append("lampiran", lampiran);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/umum/surat`, {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+            const res = await fetch(`${baseUrl}/api/umum/surat`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${getToken()}`,
@@ -94,27 +95,27 @@ export default function BuatSuratPage() {
         <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                    <FilePlus2 className="text-orange-500" size={30} />
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2.5 sm:gap-3">
+                    <FilePlus2 className="text-orange-500 shrink-0" size={28} />
                     Buat Permohonan Surat
                 </h1>
-                <p className="text-gray-500 mt-1">Isi formulir berikut untuk mengajukan surat baru</p>
+                <p className="text-sm sm:text-base text-gray-500 mt-1">Isi formulir berikut untuk mengajukan surat baru</p>
             </div>
 
             {/* Progress Steps */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                 {[
                     { num: 1, label: "Pilih Jenis Surat" },
                     { num: 2, label: "Isi Detail Surat" },
                 ].map((s, i) => (
-                    <div key={s.num} className="flex items-center gap-3 flex-1">
+                    <div key={s.num} className="flex items-center gap-2 sm:gap-3 flex-1">
                         <div className={`flex items-center gap-2 ${step >= s.num ? "text-orange-600" : "text-gray-400"}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors ${
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-colors ${
                                 step >= s.num ? "bg-orange-500 border-orange-500 text-white" : "border-gray-300 text-gray-400"
                             }`}>
                                 {s.num}
                             </div>
-                            <span className="text-sm font-medium hidden sm:block">{s.label}</span>
+                            <span className="text-xs sm:text-sm font-medium">{s.label}</span>
                         </div>
                         {i < 1 && <div className={`flex-1 h-0.5 rounded ${step >= 2 ? "bg-orange-400" : "bg-gray-200"}`} />}
                     </div>
@@ -138,15 +139,15 @@ export default function BuatSuratPage() {
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setJenisSurat(opt.value as JenisSurat)}
-                                    className={`text-left p-5 rounded-2xl border-2 transition-all ${
+                                    className={`text-left p-4 sm:p-5 rounded-2xl border-2 transition-all ${
                                         jenisSurat === opt.value
                                             ? "border-orange-400 bg-orange-50"
                                             : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                                     }`}
                                 >
-                                    <div className="flex items-start justify-between">
+                                    <div className="flex items-start justify-between gap-2">
                                         <div>
-                                            <p className="font-semibold text-gray-900">{opt.label}</p>
+                                            <p className="font-semibold text-gray-900 text-sm sm:text-base">{opt.label}</p>
                                             <p className="text-xs text-gray-500 mt-1">{opt.desc}</p>
                                         </div>
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
@@ -172,7 +173,7 @@ export default function BuatSuratPage() {
 
                 {/* STEP 2 – Isi Detail */}
                 {step === 2 && (
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 space-y-6">
                         {/* Perihal */}
                         <div>
                             <label className={labelClass}>Perihal / Tujuan Surat</label>
