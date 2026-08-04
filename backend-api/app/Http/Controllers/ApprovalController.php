@@ -188,13 +188,13 @@ class ApprovalController extends Controller
             "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi oleh Kabag TU."
         );
 
-        // Notifikasi ke Wakil Dekan & Dekan: menunggu tanda tangan
-        $pejabatIds = \App\Models\User::whereIn('role', ['wakil_dekan', 'dekan'])->pluck('id')->toArray();
+        // Notifikasi ke Sekretariat: surat sudah diverifikasi, harap upload berkas yang sudah ditandatangani
+        $sekretariatIds = \App\Models\User::where('role', 'sekretariat')->pluck('id')->toArray();
         $this->sendNotif(
             $surat->id,
-            $pejabatIds,
-            'Surat Menunggu Tanda Tangan',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi Kabag TU dan menunggu tanda tangan Anda."
+            $sekretariatIds,
+            'Surat Siap Diunggah TTD',
+            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi Kabag TU. Mohon upload berkas yang sudah ditandatangani."
         );
 
         return response()->json([
@@ -337,8 +337,8 @@ class ApprovalController extends Controller
     }
 
     /**
-     * Dekan menandatangani surat (diverifikasi → selesai).
-     * Wajib upload file surat yang telah ditandatangani.
+     * Sekretariat mengupload berkas yang telah ditandatangani Dekan (diverifikasi → selesai).
+     * Proses fisik penandatanganan dilakukan oleh Dekan, sekretariat yang mengupload hasilnya.
      */
     public function tandatangan(Request $request, $id)
     {
@@ -349,12 +349,12 @@ class ApprovalController extends Controller
         $surat = SuratUmum::with('pemohon')->findOrFail($id);
         $user  = Auth::user();
 
-        if ($user->role !== 'dekan') {
-            return response()->json(['message' => 'Hanya Dekan yang dapat menandatangani'], 403);
+        if ($user->role !== 'sekretariat') {
+            return response()->json(['message' => 'Hanya Sekretariat yang dapat mengupload berkas yang telah ditandatangani'], 403);
         }
 
         if ($surat->status !== 'diverifikasi') {
-            return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk ditandatangani'], 422);
+            return response()->json(['message' => 'Surat harus berstatus diverifikasi untuk diupload berkas TTD-nya'], 422);
         }
 
         $latestVersion = $surat->dokumens()
@@ -390,7 +390,8 @@ class ApprovalController extends Controller
             'surat_umum_id' => $surat->id,
             'approver_id'   => $user->id,
             'aksi'          => 'ditandatangani',
-            'catatan'       => $request->input('catatan', 'Ditandatangani oleh Dekan, siap diunduh'),
+            // Catatan selalu menyebut Dekan karena proses TTD fisik tetap oleh Dekan
+            'catatan'       => 'Ditandatangani oleh Dekan, siap diunduh',
         ]);
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';

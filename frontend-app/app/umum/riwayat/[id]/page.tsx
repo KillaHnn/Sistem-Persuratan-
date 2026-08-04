@@ -613,6 +613,22 @@ export default function DetailSuratPage() {
                                     </button>
                                 </>
                             )}
+
+                            {surat.status === "diverifikasi" && (
+                                <div className="w-full space-y-3">
+                                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl text-sm text-blue-700">
+                                        <p className="font-semibold mb-1">Berkas Siap Diunggah</p>
+                                        <p>Surat telah diverifikasi oleh Kabag TU. Silakan upload berkas yang <strong>sudah ditandatangani fisik oleh Dekan</strong>.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleApprovalAction("tandatangan")}
+                                        disabled={actionLoading}
+                                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
+                                    >
+                                        {actionLoading ? "Mengupload..." : "Upload Berkas TTD Dekan"}
+                                    </button>
+                                </div>
+                            )}
                             
                             {surat.status === "selesai" && (
                                 <button
@@ -645,28 +661,6 @@ export default function DetailSuratPage() {
                                 Kembalikan (Revisi / Tolak)
                             </button>
                         </div>
-                    )}
-
-                    {/* 3. SELEKSI UNTUK WAKIL DEKAN */}
-                    {user.role === "wakil_dekan" && surat.status === "diverifikasi" && (
-                        <button
-                            onClick={() => handleApprovalAction("paraf")}
-                            disabled={actionLoading}
-                            className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                        >
-                            Beri Paraf Surat
-                        </button>
-                    )}
-
-                    {/* 4. SELEKSI UNTUK DEKAN */}
-                    {user.role === "dekan" && surat.status === "diverifikasi" && (
-                        <button
-                            onClick={() => handleApprovalAction("tandatangan")}
-                            disabled={actionLoading}
-                            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl transition duration-300 disabled:opacity-50"
-                        >
-                            Tandatangani Surat
-                        </button>
                     )}
                 </div>
             )}
