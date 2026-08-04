@@ -7,13 +7,14 @@ import {
     CalendarDays, MapPin, Users, FileText, Briefcase, AlertCircle, CheckCircle
 } from "lucide-react";
 
-type JenisSurat = "undangan" | "surat_tugas" | "surat_pengantar" | "surat_keterangan" | "lainnya";
+type JenisSurat = "undangan" | "surat_tugas" | "surat_pengantar" | "surat_keterangan" | "surat_permohonan" | "lainnya";
 
 const JENIS_OPTIONS = [
     { value: "undangan",         label: "Undangan",          desc: "Surat undangan untuk kegiatan atau rapat" },
     { value: "surat_tugas",      label: "Surat Tugas",       desc: "Penugasan dinas atau kegiatan luar" },
     { value: "surat_pengantar",  label: "Surat Pengantar",   desc: "Surat pengantar dokumen atau keperluan" },
     { value: "surat_keterangan", label: "Surat Keterangan",  desc: "Keterangan status atau keperluan tertentu" },
+    { value: "surat_permohonan",      label: "Surat Permohonan",       desc: "Permohonan peminjaman" },
     { value: "lainnya",          label: "Lainnya",           desc: "Jenis surat lain yang tidak tercantum" },
 ];
 
@@ -339,6 +340,27 @@ export default function BuatSuratPage() {
                                         <label className={labelClass}>Keperluan</label>
                                         <input type="text" required placeholder="Untuk keperluan apa surat ini..." className={inputClass}
                                             onChange={e => handleDetailChange("keperluan", e.target.value)} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Surat Permohonan */}
+                            {jenisSurat === "surat_permohonan" && (
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className={labelClass}>Permohonan</label>
+                                        <textarea rows={3} required placeholder="Detail permohonan yang diajukan..." className={inputClass}
+                                            onChange={e => handleDetailChange("permohonan", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Tujuan Permohonan</label>
+                                        <input type="text" required placeholder="Ditujukan kepada siapa/unit apa" className={inputClass}
+                                            onChange={e => handleDetailChange("tujuan_permohonan", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Keterangan Tambahan (opsional)</label>
+                                        <textarea rows={2} className={inputClass}
+                                            onChange={e => handleDetailChange("keterangan", e.target.value)} />
                                     </div>
                                 </div>
                             )}
