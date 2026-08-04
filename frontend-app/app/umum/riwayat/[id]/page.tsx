@@ -8,13 +8,13 @@ import {
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
-    menunggu:       { label: "Menunggu",       color: "text-yellow-700",  bg: "bg-yellow-100" },
+    menunggu:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
     diproses:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
     dikembalikan:   { label: "Dikembalikan",   color: "text-red-700",     bg: "bg-red-100" },
-    diverifikasi:   { label: "Diverifikasi",   color: "text-purple-700",  bg: "bg-purple-100" },
-    ditandatangani: { label: "Ditandatangani", color: "text-emerald-700", bg: "bg-emerald-100" },
+    diverifikasi:   { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
+    ditandatangani: { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
     selesai:        { label: "Selesai",        color: "text-green-700",   bg: "bg-green-100" },
-    diarsipkan:     { label: "Selesai",        color: "text-gray-700",    bg: "bg-gray-100" },
+    diarsipkan:     { label: "Diarsipkan",     color: "text-gray-700",    bg: "bg-gray-100" },
 };
 
 const JENIS_MAP: Record<string, string> = {
@@ -29,7 +29,7 @@ const APPROVAL_STEPS = [
     { status: "menunggu",       label: "Permohonan Diajukan",    actor: "Pemohon" },
     { status: "diproses",       label: "Diproses Sekretariat",   actor: "Sekretariat" },
     { status: "diverifikasi",   label: "Diverifikasi Kabag TU",  actor: "Kabag TU" },
-    { status: "ditandatangani", label: "Ditandatangani Dekan",   actor: "Dekan" },
+    { status: "ditandatangani", label: "Ditandatangani Dekan",   actor: "Sekretariat" },
     { status: "selesai",        label: "Surat Selesai",          actor: "Sistem" },
     { status: "diarsipkan",     label: "Diarsipkan",             actor: "Sekretariat" },
 ];
@@ -235,7 +235,9 @@ export default function DetailSuratPage() {
         );
     }
 
-    const statusInfo = STATUS_MAP[surat.status] || { label: surat.status, color: "text-gray-700", bg: "bg-gray-100" };
+    const statusInfo = (surat.status === "diarsipkan" && user?.role !== "sekretariat")
+        ? { label: "Selesai", color: "text-green-700", bg: "bg-green-100" }
+        : STATUS_MAP[surat.status] || { label: surat.status, color: "text-gray-700", bg: "bg-gray-100" };
     const detail = surat.detail_undangan || surat.detail_surat_tugas || surat.detail_surat_pengantar ||
         surat.detail_surat_keterangan_umum || surat.detail_surat_lainnya;
     return (

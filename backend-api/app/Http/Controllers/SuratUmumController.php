@@ -260,7 +260,7 @@ class SuratUmumController extends Controller
             'surat_umum_id' => $surat->id,
             'user_id'       => $surat->pemohon_id,
             'judul'         => 'Permohonan Surat Dibuat',
-            'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang menunggu diproses oleh sekretariat.",
+            'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang diproses oleh sekretariat.",
         ]);
 
         // Notifikasi ke semua sekretariat: surat baru masuk
@@ -270,7 +270,7 @@ class SuratUmumController extends Controller
                 'surat_umum_id' => $surat->id,
                 'user_id'       => $sekretariat->id,
                 'judul'         => 'Permohonan Surat Baru',
-                'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} baru masuk dan menunggu diproses.",
+                'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} baru masuk dan perlu diproses.",
             ]);
         }
     }

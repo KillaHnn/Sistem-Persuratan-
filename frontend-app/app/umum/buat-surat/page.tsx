@@ -84,7 +84,7 @@ export default function BuatSuratPage() {
                         <CheckCircle size={40} className="text-green-500" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900">Permohonan Terkirim!</h2>
-                    <p className="text-gray-500">Surat Anda telah berhasil diajukan dan sedang menunggu diproses oleh sekretariat.</p>
+                    <p className="text-gray-500">Surat Anda telah berhasil diajukan dan sedang diproses oleh sekretariat.</p>
                     <p className="text-sm text-gray-400">Mengalihkan ke dashboard...</p>
                 </div>
             </div>

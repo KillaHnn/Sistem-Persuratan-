@@ -62,4 +62,39 @@ class DokumenSuratController extends Controller
             'data'    => $dokumen->load('uploader'),
         ], 201);
     }
+
+    /**
+     * Tampilkan / download file dokumen surat.
+     */
+    public function showFile($id)
+    {
+        $dokumen = DokumenSurat::find($id);
+
+        $rawPath = $dokumen ? $dokumen->path_file : $id;
+        $cleanPath = preg_replace('/^\/?(storage\/|public\/)?/', '', $rawPath);
+
+        $candidates = [
+            storage_path('app/public/' . $cleanPath),
+            storage_path('app/' . $cleanPath),
+            public_path('storage/' . $cleanPath),
+            public_path($cleanPath),
+        ];
+
+        foreach ($candidates as $filePath) {
+            if (file_exists($filePath) && !is_dir($filePath)) {
+                $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+                $filename = $dokumen ? $dokumen->nama_file : basename($filePath);
+
+                return response()->file($filePath, [
+                    'Content-Type'        => $mimeType,
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"',
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message'      => 'File tidak ditemukan di server.',
+            'path_checked' => $cleanPath,
+        ], 404);
+    }
 }

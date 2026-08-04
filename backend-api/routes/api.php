@@ -48,6 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('dokumen', [\App\Http\Controllers\DokumenSuratController::class, 'store']);
         });
 
+        // Download / Preview File Dokumen
+        Route::get('dokumen/{id}/file', [\App\Http\Controllers\DokumenSuratController::class, 'showFile']);
+
         // Notifikasi
         Route::get('notifikasi',              [\App\Http\Controllers\NotifikasiSuratController::class, 'index']);
         Route::patch('notifikasi/{nid}/read', [\App\Http\Controllers\NotifikasiSuratController::class, 'markRead']);

@@ -17,11 +17,11 @@ type SuratUmum = {
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
-    menunggu:       { label: "Menunggu",       color: "bg-yellow-100 text-yellow-700 border-yellow-200",   icon: Clock },
+    menunggu:       { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
     diproses:       { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
     dikembalikan:   { label: "Dikembalikan",   color: "bg-red-100 text-red-700 border-red-200",            icon: RotateCcw },
-    diverifikasi:   { label: "Diverifikasi",   color: "bg-purple-100 text-purple-700 border-purple-200",   icon: CheckCircle },
-    ditandatangani: { label: "Ditandatangani", color: "bg-green-100 text-green-700 border-green-200",      icon: CheckCircle },
+    diverifikasi:   { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
+    ditandatangani: { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
     selesai:        { label: "Selesai",        color: "bg-green-100 text-green-700 border-green-200",      icon: CheckCircle },
     diarsipkan:     { label: "Diarsipkan",     color: "bg-gray-100 text-gray-700 border-gray-200",         icon: Archive },
 };
@@ -40,6 +40,7 @@ export default function RiwayatPage() {
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [filterJenis, setFilterJenis] = useState("semua");
+    const [userRole, setUserRole] = useState<string>("pemohon");
 
     const getToken = () => {
         if (typeof window !== "undefined") {
@@ -49,6 +50,11 @@ export default function RiwayatPage() {
     };
 
     useEffect(() => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setUserRole(user.role || "pemohon");
+        }
         const fetchSurats = async () => {
             try {
                 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -66,6 +72,13 @@ export default function RiwayatPage() {
         };
         fetchSurats();
     }, []);
+
+    const getStatusInfo = (status: string) => {
+        if (status === "diarsipkan" && userRole !== "sekretariat") {
+            return { label: "Selesai", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle };
+        }
+        return STATUS_MAP[status] || { label: status, color: "bg-gray-100 text-gray-700 border-gray-200", icon: FileText };
+    };
 
     const filtered = surats.filter(s => {
         const matchSearch = s.perihal.toLowerCase().includes(search.toLowerCase()) ||
@@ -137,7 +150,7 @@ export default function RiwayatPage() {
                     </div>
                 ) : (
                     filtered.map((surat) => {
-                        const st = STATUS_MAP[surat.status] || { label: surat.status, color: "bg-gray-100 text-gray-700 border-gray-200", icon: FileText };
+                        const st = getStatusInfo(surat.status);
                         const StIcon = st.icon;
                         return (
                             <Link key={surat.id} href={`/umum/riwayat/${surat.id}`}
