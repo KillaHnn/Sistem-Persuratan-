@@ -57,7 +57,7 @@ class SuratUmumController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'jenis_surat' => 'required|in:undangan,surat_tugas,surat_pengantar,surat_keterangan,surat_permohonan,lainnya',
+            'jenis_surat' => 'required|in:undangan,surat_tugas,surat_pengantar,surat_keterangan,surat_permohonan,surat_keputusan,lainnya',
             'perihal'     => 'required|string',
             'detail'      => 'required|array',
             'lampiran'    => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:10240', // Optional, max 10MB
@@ -86,6 +86,7 @@ class SuratUmumController extends Controller
                 'surat_pengantar'  => \App\Models\DetailSuratPengantar::create($detailData),
                 'surat_keterangan' => \App\Models\DetailSuratKeteranganUmum::create($detailData),
                 'surat_permohonan' => \App\Models\DetailSuratPermohonan::create($detailData),
+                'surat_keputusan'  => \App\Models\DetailSuratKeputusan::create($detailData),
                 'lainnya'          => \App\Models\DetailSuratLainnya::create($detailData),
             };
 
@@ -237,6 +238,14 @@ class SuratUmumController extends Controller
                 'detail.permohonan'        => 'required|string',
                 'detail.tujuan_permohonan' => 'required|string',
             ],
+            'surat_keputusan' => [
+                'detail.jenis_sk'         => 'required|in:Dekan,Rektor',
+                'detail.tentang'          => 'required|string',
+                'detail.menimbang'        => 'required|string',
+                'detail.mengingat'        => 'required|string',
+                'detail.diktum_keputusan' => 'required|string',
+                'detail.tembusan'         => 'nullable|string',
+            ],
             'lainnya' => [
                 'detail.deskripsi' => 'required|string',
             ],
@@ -251,6 +260,7 @@ class SuratUmumController extends Controller
             'surat_pengantar'  => $surat->load('detailSuratPengantar'),
             'surat_keterangan' => $surat->load('detailSuratKeteranganUmum'),
             'surat_permohonan' => $surat->load('detailSuratPermohonan'),
+            'surat_keputusan'  => $surat->load('detailSuratKeputusan'),
             'lainnya'          => $surat->load('detailSuratLainnya'),
             default            => null,
         };

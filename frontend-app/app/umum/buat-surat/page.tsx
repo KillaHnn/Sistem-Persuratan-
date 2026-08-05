@@ -7,14 +7,15 @@ import {
     CalendarDays, MapPin, Users, FileText, Briefcase, AlertCircle, CheckCircle
 } from "lucide-react";
 
-type JenisSurat = "undangan" | "surat_tugas" | "surat_pengantar" | "surat_keterangan" | "surat_permohonan" | "lainnya";
+type JenisSurat = "undangan" | "surat_tugas" | "surat_pengantar" | "surat_keterangan" | "surat_permohonan" | "surat_keputusan" | "lainnya";
 
 const JENIS_OPTIONS = [
     { value: "undangan",         label: "Undangan",          desc: "Surat undangan untuk kegiatan atau rapat" },
     { value: "surat_tugas",      label: "Surat Tugas",       desc: "Penugasan dinas atau kegiatan luar" },
     { value: "surat_pengantar",  label: "Surat Pengantar",   desc: "Surat pengantar dokumen atau keperluan" },
     { value: "surat_keterangan", label: "Surat Keterangan",  desc: "Keterangan status atau keperluan tertentu" },
-    { value: "surat_permohonan",      label: "Surat Permohonan",       desc: "Permohonan peminjaman" },
+    { value: "surat_permohonan", label: "Surat Permohonan",  desc: "Permohonan peminjaman" },
+    { value: "surat_keputusan",  label: "Surat Keputusan",   desc: "SK Dekan atau SK Rektor" },
     { value: "lainnya",          label: "Lainnya",           desc: "Jenis surat lain yang tidak tercantum" },
 ];
 
@@ -361,6 +362,51 @@ export default function BuatSuratPage() {
                                         <label className={labelClass}>Keterangan Tambahan (opsional)</label>
                                         <textarea rows={2} className={inputClass}
                                             onChange={e => handleDetailChange("keterangan", e.target.value)} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Surat Keputusan */}
+                            {jenisSurat === "surat_keputusan" && (
+                                <div className="grid grid-cols-1 gap-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className={labelClass}>Jenis SK</label>
+                                            <select required className={inputClass}
+                                                onChange={e => handleDetailChange("jenis_sk", e.target.value)}
+                                                defaultValue=""
+                                            >
+                                                <option value="" disabled>-- Pilih Jenis SK --</option>
+                                                <option value="Dekan">SK Dekan</option>
+                                                <option value="Rektor">SK Rektor</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Tentang</label>
+                                            <input type="text" required placeholder="Cth: PENGANGKATAN DOSEN PEMBIMBING..." className={inputClass}
+                                                onChange={e => handleDetailChange("tentang", e.target.value)} />
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className={labelClass}>Menimbang</label>
+                                        <textarea rows={3} required placeholder="a. Bahwa dalam rangka...&#10;b. Bahwa..." className={inputClass}
+                                            onChange={e => handleDetailChange("menimbang", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Mengingat</label>
+                                        <textarea rows={3} required placeholder="1. Undang-Undang Nomor...&#10;2. Peraturan Pemerintah..." className={inputClass}
+                                            onChange={e => handleDetailChange("mengingat", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Diktum Keputusan (Isi)</label>
+                                        <textarea rows={4} required placeholder="PERTAMA: Menunjuk dan...&#10;KEDUA: ..." className={inputClass}
+                                            onChange={e => handleDetailChange("diktum_keputusan", e.target.value)} />
+                                    </div>
+                                    <div>
+                                        <label className={labelClass}>Tembusan (opsional)</label>
+                                        <textarea rows={2} placeholder="1. Rektor Universitas...&#10;2. Arsip" className={inputClass}
+                                            onChange={e => handleDetailChange("tembusan", e.target.value)} />
                                     </div>
                                 </div>
                             )}

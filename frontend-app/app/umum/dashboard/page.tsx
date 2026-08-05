@@ -46,6 +46,8 @@ const JENIS_MAP: Record<string, string> = {
     surat_tugas:      "Surat Tugas",
     surat_pengantar:  "Surat Pengantar",
     surat_keterangan: "Surat Keterangan",
+    surat_permohonan: "Surat Permohonan",
+    surat_keputusan:  "Surat Keputusan",
     lainnya:          "Lainnya",
 };
 

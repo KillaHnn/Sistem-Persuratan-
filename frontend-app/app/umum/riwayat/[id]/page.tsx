@@ -23,6 +23,7 @@ const JENIS_MAP: Record<string, string> = {
     surat_pengantar: "Surat Pengantar",
     surat_keterangan: "Surat Keterangan",
     surat_permohonan: "Surat Permohonan",
+    surat_keputusan: "Surat Keputusan",
     lainnya: "Lainnya",
 };
 
@@ -240,7 +241,7 @@ export default function DetailSuratPage() {
         ? { label: "Selesai", color: "text-green-700", bg: "bg-green-100" }
         : STATUS_MAP[surat.status] || { label: surat.status, color: "text-gray-700", bg: "bg-gray-100" };
     const detail = surat.detail_undangan || surat.detail_surat_tugas || surat.detail_surat_pengantar ||
-        surat.detail_surat_keterangan_umum || surat.detail_surat_permohonan || surat.detail_surat_lainnya;
+        surat.detail_surat_keterangan_umum || surat.detail_surat_permohonan || surat.detail_surat_keputusan || surat.detail_surat_lainnya;
     return (
         <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500">
             {/* Back */}

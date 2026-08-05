@@ -73,6 +73,11 @@ class SuratUmum extends Model
         return $this->hasOne(DetailSuratPermohonan::class);
     }
 
+    public function detailSuratKeputusan(): HasOne
+    {
+        return $this->hasOne(DetailSuratKeputusan::class);
+    }
+
     public function detailSuratLainnya(): HasOne
     {
         return $this->hasOne(DetailSuratLainnya::class);
@@ -89,6 +94,7 @@ class SuratUmum extends Model
             'surat_pengantar'   => $this->detailSuratPengantar(),
             'surat_keterangan'  => $this->detailSuratKeteranganUmum(),
             'surat_permohonan'  => $this->detailSuratPermohonan(),
+            'surat_keputusan'   => $this->detailSuratKeputusan(),
             'lainnya'           => $this->detailSuratLainnya(),
             default             => null,
         };

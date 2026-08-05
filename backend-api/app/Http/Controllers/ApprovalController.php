@@ -30,7 +30,8 @@ class ApprovalController extends Controller
             'undangan'         => 'UND',
             'surat_tugas'      => 'ST',
             'surat_pengantar'  => 'SP',
-            'surat_keterangan' => 'SK',
+            'surat_keterangan' => 'SKet',
+            'surat_keputusan'  => 'SK',
             'lainnya'          => 'LN',
         ];
         $jenis = $jenisMap[$surat->jenis_surat] ?? strtoupper(substr($surat->jenis_surat, 0, 3));
