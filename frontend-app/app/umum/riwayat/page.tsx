@@ -14,16 +14,17 @@ type SuratUmum = {
     nomor_surat: string | null;
     status: string;
     tgl_permohonan: string;
+    hasil_arsip: string | null;
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
-    menunggu:       { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
-    diproses:       { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
-    dikembalikan:   { label: "Dikembalikan",   color: "bg-red-100 text-red-700 border-red-200",            icon: RotateCcw },
-    diverifikasi:   { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
-    ditandatangani: { label: "Diproses",       color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
-    selesai:        { label: "Selesai",        color: "bg-green-100 text-green-700 border-green-200",      icon: CheckCircle },
-    diarsipkan:     { label: "Diarsipkan",     color: "bg-gray-100 text-gray-700 border-gray-200",         icon: Archive },
+    menunggu: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    diproses: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    dikembalikan: { label: "Dikembalikan", color: "bg-red-100 text-red-700 border-red-200", icon: RotateCcw },
+    diverifikasi: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    ditandatangani: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    selesai: { label: "Selesai", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle },
+    diarsipkan: { label: "Diarsipkan", color: "bg-gray-100 text-gray-700 border-gray-200", icon: Archive },
 };
 
 const JENIS_MAP: Record<string, string> = {
@@ -85,9 +86,9 @@ export default function RiwayatPage() {
 
     // Tab filter khusus sekretariat — hanya surat yang sudah diarsipkan
     const sekretariatTabs = [
-        { key: "semua",        label: "Semua Arsip" },
-        { key: "berhasil",     label: "Arsip (Selesai/Berhasil)" },
-        { key: "ditolak",      label: "Arsip (Dikembalikan/Ditolak)" },
+        { key: "semua", label: "Semua Arsip" },
+        { key: "berhasil", label: "Arsip (Selesai/Berhasil)" },
+        { key: "ditolak", label: "Arsip (Dikembalikan/Ditolak)" },
     ];
 
     // Logika filter gabungan
@@ -102,8 +103,8 @@ export default function RiwayatPage() {
             if (s.status !== "diarsipkan") return false;
 
             // Filter tab berdasarkan hasil arsip (berhasil atau ditolak)
-            if (filterStatus === "berhasil")      matchStatus = s.hasil_arsip === "berhasil";
-            else if (filterStatus === "ditolak")  matchStatus = s.hasil_arsip === "ditolak";
+            if (filterStatus === "berhasil") matchStatus = s.hasil_arsip === "berhasil";
+            else if (filterStatus === "ditolak") matchStatus = s.hasil_arsip === "ditolak";
             // filterStatus === "semua" → semua arsip tampil
         }
         return matchSearch && matchJenis && matchStatus;
@@ -140,9 +141,8 @@ export default function RiwayatPage() {
                             <button
                                 key={tab.key}
                                 onClick={() => setFilterStatus(tab.key)}
-                                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                                    filterStatus === tab.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                }`}
+                                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${filterStatus === tab.key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                    }`}
                             >
                                 {tab.label}
                             </button>
@@ -151,22 +151,22 @@ export default function RiwayatPage() {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                {/* Search */}
-                <div className="flex items-center bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 flex-1 focus-within:ring-2 focus-within:ring-orange-100 transition">
-                    <Search size={16} className="text-gray-400 mr-2 shrink-0" />
-                    <input type="text" placeholder="Cari perihal atau nomor surat..."
-                        value={search} onChange={e => setSearch(e.target.value)}
-                        className="bg-transparent outline-none text-sm w-full text-gray-700 placeholder:text-gray-400" />
-                </div>
+                    {/* Search */}
+                    <div className="flex items-center bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 flex-1 focus-within:ring-2 focus-within:ring-orange-100 transition">
+                        <Search size={16} className="text-gray-400 mr-2 shrink-0" />
+                        <input type="text" placeholder="Cari perihal atau nomor surat..."
+                            value={search} onChange={e => setSearch(e.target.value)}
+                            className="bg-transparent outline-none text-sm w-full text-gray-700 placeholder:text-gray-400" />
+                    </div>
 
-                {/* Jenis filter */}
-                <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)}
-                    className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-orange-100 w-full sm:w-auto">
-                    <option value="semua">Semua Jenis</option>
-                    {Object.entries(JENIS_MAP).map(([k, v]) => (
-                        <option key={k} value={k}>{v}</option>
-                    ))}
-                </select>
+                    {/* Jenis filter */}
+                    <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)}
+                        className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-orange-100 w-full sm:w-auto">
+                        <option value="semua">Semua Jenis</option>
+                        {Object.entries(JENIS_MAP).map(([k, v]) => (
+                            <option key={k} value={k}>{v}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 

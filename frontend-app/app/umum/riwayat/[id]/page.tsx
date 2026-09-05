@@ -8,13 +8,13 @@ import {
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
-    menunggu:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
-    diproses:       { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
-    dikembalikan:   { label: "Dikembalikan",   color: "text-red-700",     bg: "bg-red-100" },
-    diverifikasi:   { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
-    ditandatangani: { label: "Diproses",       color: "text-blue-700",    bg: "bg-blue-100" },
-    selesai:        { label: "Selesai",        color: "text-green-700",   bg: "bg-green-100" },
-    diarsipkan:     { label: "Diarsipkan",     color: "text-gray-700",    bg: "bg-gray-100" },
+    menunggu: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
+    diproses: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
+    dikembalikan: { label: "Dikembalikan", color: "text-red-700", bg: "bg-red-100" },
+    diverifikasi: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
+    ditandatangani: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
+    selesai: { label: "Selesai", color: "text-green-700", bg: "bg-green-100" },
+    diarsipkan: { label: "Diarsipkan", color: "text-gray-700", bg: "bg-gray-100" },
 };
 
 const JENIS_MAP: Record<string, string> = {
@@ -28,12 +28,12 @@ const JENIS_MAP: Record<string, string> = {
 };
 
 const APPROVAL_STEPS = [
-    { status: "menunggu",       label: "Permohonan Diajukan",    actor: "Pemohon" },
-    { status: "diproses",       label: "Diproses Sekretariat",   actor: "Sekretariat" },
-    { status: "diverifikasi",   label: "Diverifikasi Kabag TU",  actor: "Kabag TU" },
-    { status: "ditandatangani", label: "Ditandatangani Dekan",   actor: "Sekretariat" },
-    { status: "selesai",        label: "Surat Selesai",          actor: "Sistem" },
-    { status: "diarsipkan",     label: "Diarsipkan",             actor: "Sekretariat" },
+    { status: "menunggu", label: "Permohonan Diajukan", actor: "Pemohon" },
+    { status: "diproses", label: "Diproses Sekretariat", actor: "Sekretariat" },
+    { status: "diverifikasi", label: "Diverifikasi Kabag TU", actor: "Kabag TU" },
+    { status: "ditandatangani", label: "Ditandatangani Dekan", actor: "Sekretariat" },
+    { status: "selesai", label: "Surat Selesai", actor: "Sistem" },
+    { status: "diarsipkan", label: "Diarsipkan", actor: "Sekretariat" },
 ];
 
 const STATUS_ORDER = ["menunggu", "diproses", "diverifikasi", "ditandatangani", "selesai", "diarsipkan"];
@@ -64,8 +64,8 @@ export default function DetailSuratPage() {
             fetch(`${API_BASE}/api/klasifikasi/primer`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
-            .then(res => res.json())
-            .then(data => setPrimers(data.data || data));
+                .then(res => res.json())
+                .then(data => setPrimers(data.data || data));
         }
     }, [showProsesModal]);
 
@@ -74,8 +74,8 @@ export default function DetailSuratPage() {
             fetch(`${API_BASE}/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
-            .then(res => res.json())
-            .then(data => { setSekunders(data.data || data); setKlasifikasi(prev => ({ ...prev, sekunderId: "", tersierId: "" })); setTersiers([]); });
+                .then(res => res.json())
+                .then(data => { setSekunders(data.data || data); setKlasifikasi(prev => ({ ...prev, sekunderId: "", tersierId: "" })); setTersiers([]); });
         }
     }, [klasifikasi.primerId]);
 
@@ -84,15 +84,15 @@ export default function DetailSuratPage() {
             fetch(`${API_BASE}/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
                 headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
             })
-            .then(res => res.json())
-            .then(data => { setTersiers(data.data || data); setKlasifikasi(prev => ({ ...prev, tersierId: "" })); });
+                .then(res => res.json())
+                .then(data => { setTersiers(data.data || data); setKlasifikasi(prev => ({ ...prev, tersierId: "" })); });
         }
     }, [klasifikasi.sekunderId]);
 
-    useEffect(() =>{
-        if(typeof window !== "undefined"){
+    useEffect(() => {
+        if (typeof window !== "undefined") {
             const u = localStorage.getItem("user");
-            if (u){
+            if (u) {
                 try {
                     setUser(JSON.parse(u));
                 } catch (e) {
@@ -127,7 +127,7 @@ export default function DetailSuratPage() {
         fetchDetail();
     }, [params.id]);
 
-    
+
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [pendingAction, setPendingAction] = useState<string | null>(null);
 
@@ -377,11 +377,11 @@ export default function DetailSuratPage() {
                         <p className="text-sm text-gray-500">
                             Pilih klasifikasi untuk men-generate nomor surat dan unggah draft dokumen awal.
                         </p>
-                        
+
                         <div className="space-y-3">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Primer</label>
-                                <select 
+                                <select
                                     className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
                                     value={klasifikasi.primerId}
                                     onChange={e => setKlasifikasi(p => ({ ...p, primerId: e.target.value }))}
@@ -390,10 +390,10 @@ export default function DetailSuratPage() {
                                     {primers.map((p: any) => <option key={p.id} value={p.id}>{p.kode} - {p.nama}</option>)}
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Sekunder</label>
-                                <select 
+                                <select
                                     className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
                                     value={klasifikasi.sekunderId}
                                     onChange={e => setKlasifikasi(p => ({ ...p, sekunderId: e.target.value }))}
@@ -403,10 +403,10 @@ export default function DetailSuratPage() {
                                     {sekunders.map((s: any) => <option key={s.id} value={s.id}>{s.kode} - {s.nama}</option>)}
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Tersier</label>
-                                <select 
+                                <select
                                     className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
                                     value={klasifikasi.tersierId}
                                     onChange={e => setKlasifikasi(p => ({ ...p, tersierId: e.target.value }))}
@@ -419,8 +419,8 @@ export default function DetailSuratPage() {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Unggah Draft Surat (.pdf/.docx)</label>
-                                <input 
-                                    type="file" 
+                                <input
+                                    type="file"
                                     accept=".pdf,.docx"
                                     className="w-full p-2 border border-gray-200 rounded-xl text-sm"
                                     onChange={e => setSelectedFile(e.target.files?.[0] || null)}
@@ -456,7 +456,7 @@ export default function DetailSuratPage() {
 
                     {/* Tentukan apakah surat ditolak */}
                     {(() => {
-                        const isRejected = surat.status === "dikembalikan" || 
+                        const isRejected = surat.status === "dikembalikan" ||
                             (surat.status === "diarsipkan" && surat.hasil_arsip === "ditolak");
 
                         // Langkah-langkah yang ditampilkan — kalau ditolak, ganti step setelah yang dicapai
@@ -476,9 +476,8 @@ export default function DetailSuratPage() {
                         return (
                             <>
                                 {/* Vertical line */}
-                                <div className={`absolute left-4 top-4 bottom-4 w-0.5 ${
-                                    isRejected ? "bg-red-100" : "bg-gray-100"
-                                }`} />
+                                <div className={`absolute left-4 top-4 bottom-4 w-0.5 ${isRejected ? "bg-red-100" : "bg-gray-100"
+                                    }`} />
 
                                 <div className="space-y-6">
                                     {stepsToRender.map((step, i) => {
@@ -496,13 +495,12 @@ export default function DetailSuratPage() {
 
                                         return (
                                             <div key={step.status} className="flex items-start gap-5">
-                                                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                                                    isDoneBeforeRejection
+                                                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${isDoneBeforeRejection
                                                         ? "border-red-400 bg-red-400"     // merah — dilalui sebelum ditolak
                                                         : isDoneNormal
                                                             ? "border-green-400 bg-green-400" // hijau — selesai normal
                                                             : "border-gray-200 bg-white"      // abu — belum diproses
-                                                }`}>
+                                                    }`}>
                                                     {isDoneBeforeRejection
                                                         ? <XCircle size={16} className="text-white" />
                                                         : isDoneNormal
@@ -511,11 +509,10 @@ export default function DetailSuratPage() {
                                                     }
                                                 </div>
                                                 <div className="pt-1">
-                                                    <p className={`text-sm font-semibold ${
-                                                        isDoneBeforeRejection ? "text-red-600"
-                                                        : isDoneNormal ? "text-gray-800"
-                                                        : "text-gray-400"
-                                                    }`}>
+                                                    <p className={`text-sm font-semibold ${isDoneBeforeRejection ? "text-red-600"
+                                                            : isDoneNormal ? "text-gray-800"
+                                                                : "text-gray-400"
+                                                        }`}>
                                                         {step.label}
                                                     </p>
                                                     <p className="text-xs text-gray-400">{step.actor}</p>
@@ -557,7 +554,7 @@ export default function DetailSuratPage() {
                                 } else if (k.includes('tanggal')) {
                                     displayValue = new Date(String(v)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
                                 }
-                                
+
                                 return (
                                     <div key={k} className="bg-gray-50 rounded-xl p-4">
                                         <p className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1">
@@ -589,11 +586,10 @@ export default function DetailSuratPage() {
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="text-sm font-semibold text-gray-800">{log.approver?.name}</span>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                            log.aksi === "dikembalikan" ? "bg-red-100 text-red-600"
-                                            : log.aksi === "ditandatangani" ? "bg-green-100 text-green-600"
-                                            : "bg-blue-100 text-blue-600"
-                                        }`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${log.aksi === "dikembalikan" ? "bg-red-100 text-red-600"
+                                                : log.aksi === "ditandatangani" ? "bg-green-100 text-green-600"
+                                                    : "bg-blue-100 text-blue-600"
+                                            }`}>
                                             {log.aksi}
                                         </span>
                                     </div>
@@ -641,14 +637,14 @@ export default function DetailSuratPage() {
             {user && surat.status !== "diarsipkan" && (
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8 space-y-4">
                     <h2 className="text-base font-bold text-gray-800">Panel Tindakan Validasi</h2>
-                    
+
                     {actionError && (
                         <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start gap-2">
                             <AlertCircle size={18} className="shrink-0 mt-0.5" />
                             <p>{actionError}</p>
                         </div>
                     )}
-                    
+
                     {/* 1. SELEKSI UNTUK SEKRETARIAT */}
                     {user.role === "sekretariat" && (
                         <div className="flex flex-col sm:flex-row gap-4">
@@ -686,7 +682,7 @@ export default function DetailSuratPage() {
                                     </button>
                                 </div>
                             )}
-                            
+
                             {surat.status === "selesai" && (
                                 <button
                                     onClick={() => handleApprovalAction("arsipkan")}
@@ -719,7 +715,7 @@ export default function DetailSuratPage() {
                             >
                                 Verifikasi (Setujui)
                             </button>
-                            
+
                             <button
                                 onClick={() => setRejectModal(true)}
                                 disabled={actionLoading}
