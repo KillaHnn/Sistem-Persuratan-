@@ -80,11 +80,9 @@ class ApprovalController extends Controller
     public function proses(Request $request, $id)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf,docx|max:10240',
-            'klasifikasi_primer_id'  => 'required_without:nomor_surat_id|exists:klasifikasi_primers,id',
-            'klasifikasi_sekunder_id'=> 'required_without:nomor_surat_id|exists:klasifikasi_sekunders,id',
-            'klasifikasi_tersier_id' => 'required_without:nomor_surat_id|exists:klasifikasi_tersiers,id',
-            'jenis_arsip'            => 'nullable|string',
+            'file'         => 'required|file|mimes:pdf,docx|max:10240',
+            'nomor_surat'  => 'required_without:nomor_surat_id|string|max:255',
+            'jenis_arsip'  => 'nullable|string',
         ]);
 
         $surat = SuratUmum::with('pemohon')->findOrFail($id);
@@ -123,29 +121,9 @@ class ApprovalController extends Controller
 
         $nomorSuratId = $surat->nomor_surat_id;
 
-        if (!$nomorSuratId) {
-            $primer   = \App\Models\KlasifikasiPrimer::findOrFail($request->klasifikasi_primer_id);
-            $sekunder = \App\Models\KlasifikasiSekunder::findOrFail($request->klasifikasi_sekunder_id);
-            $tersier  = \App\Models\KlasifikasiTersier::findOrFail($request->klasifikasi_tersier_id);
-
-            $nomorSurat = \App\Models\NomorSurat::create([
-                'klasifikasi_primer'  => $primer->kode,
-                'klasifikasi_sekunder'=> $sekunder->kode,
-                'klasifikasi_tersier' => $tersier->kode,
-                'jenis_arsip'         => $request->input('jenis_arsip', 'Surat Umum'),
-                'tanggal_surat'       => now()->toDateString(),
-                'hal_surat'           => $surat->perihal,
-                'isi_surat'           => '-',
-            ]);
-
-            $nomorSuratId = $nomorSurat->id;
-
+        if (!$nomorSuratId && $request->filled('nomor_surat')) {
             $surat->update([
-                'klasifikasi_primer_id'  => $primer->id,
-                'klasifikasi_sekunder_id'=> $sekunder->id,
-                'klasifikasi_tersier_id' => $tersier->id,
-                'nomor_surat_id'         => $nomorSuratId,
-                'nomor_surat'            => $nomorSurat->nomor_surat,
+                'nomor_surat' => $request->input('nomor_surat'),
             ]);
         }
 
@@ -156,7 +134,7 @@ class ApprovalController extends Controller
 
         \App\Models\NomorSuratHistory::create([
             'surat_umum_id'  => $surat->id,
-            'nomor_surat_id' => $nomorSuratId,
+            'nomor_surat_id' => $surat->fresh()->nomor_surat_id,
             'generated_by'   => $user->id,
             'status_step'    => 'sekretariat_validated',
         ]);

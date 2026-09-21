@@ -52,42 +52,9 @@ export default function DetailSuratPage() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [showProsesModal, setShowProsesModal] = useState(false);
-    const [klasifikasi, setKlasifikasi] = useState({ primerId: "", sekunderId: "", tersierId: "" });
-    const [primers, setPrimers] = useState<any[]>([]);
-    const [sekunders, setSekunders] = useState<any[]>([]);
-    const [tersiers, setTersiers] = useState<any[]>([]);
+    const [nomorSuratInput, setNomorSuratInput] = useState("");
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-
-    useEffect(() => {
-        if (showProsesModal && primers.length === 0) {
-            fetch(`${API_BASE}/api/klasifikasi/primer`, {
-                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
-            })
-                .then(res => res.json())
-                .then(data => setPrimers(data.data || data));
-        }
-    }, [showProsesModal]);
-
-    useEffect(() => {
-        if (klasifikasi.primerId) {
-            fetch(`${API_BASE}/api/klasifikasi/sekunder/${klasifikasi.primerId}`, {
-                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
-            })
-                .then(res => res.json())
-                .then(data => { setSekunders(data.data || data); setKlasifikasi(prev => ({ ...prev, sekunderId: "", tersierId: "" })); setTersiers([]); });
-        }
-    }, [klasifikasi.primerId]);
-
-    useEffect(() => {
-        if (klasifikasi.sekunderId) {
-            fetch(`${API_BASE}/api/klasifikasi/tersier/${klasifikasi.sekunderId}`, {
-                headers: { Authorization: `Bearer ${getToken()}`, Accept: "application/json" }
-            })
-                .then(res => res.json())
-                .then(data => { setTersiers(data.data || data); setKlasifikasi(prev => ({ ...prev, tersierId: "" })); });
-        }
-    }, [klasifikasi.sekunderId]);
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -155,10 +122,8 @@ export default function DetailSuratPage() {
                 if (action === "kembalikan") {
                     form.append("catatan", catatan);
                 }
-                if (action === "proses" && klasifikasi.primerId) {
-                    form.append("klasifikasi_primer_id", klasifikasi.primerId);
-                    form.append("klasifikasi_sekunder_id", klasifikasi.sekunderId);
-                    form.append("klasifikasi_tersier_id", klasifikasi.tersierId);
+                if (action === "proses" && nomorSuratInput.trim()) {
+                    form.append("nomor_surat", nomorSuratInput.trim());
                 }
                 body = form;
                 // Note: fetch will set correct multipart headers automatically
@@ -189,6 +154,7 @@ export default function DetailSuratPage() {
             setPendingAction(null);
             setSelectedFile(null);
             setShowProsesModal(false);
+            setNomorSuratInput("");
         }
     };
 
@@ -373,48 +339,21 @@ export default function DetailSuratPage() {
             {showProsesModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
                     <div className="bg-white rounded-3xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
-                        <h3 className="text-lg font-bold text-gray-900">Proses & Buat Nomor Surat</h3>
+                        <h3 className="text-lg font-bold text-gray-900">Proses & Input Nomor Surat</h3>
                         <p className="text-sm text-gray-500">
-                            Pilih klasifikasi untuk men-generate nomor surat dan unggah draft dokumen awal.
+                            Masukkan nomor surat secara manual dan unggah draft dokumen awal.
                         </p>
 
                         <div className="space-y-3">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Primer</label>
-                                <select
-                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
-                                    value={klasifikasi.primerId}
-                                    onChange={e => setKlasifikasi(p => ({ ...p, primerId: e.target.value }))}
-                                >
-                                    <option value="">-- Pilih Primer --</option>
-                                    {primers.map((p: any) => <option key={p.id} value={p.id}>{p.kode} - {p.nama}</option>)}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Sekunder</label>
-                                <select
-                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
-                                    value={klasifikasi.sekunderId}
-                                    onChange={e => setKlasifikasi(p => ({ ...p, sekunderId: e.target.value }))}
-                                    disabled={!klasifikasi.primerId}
-                                >
-                                    <option value="">-- Pilih Sekunder --</option>
-                                    {sekunders.map((s: any) => <option key={s.id} value={s.id}>{s.kode} - {s.nama}</option>)}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Klasifikasi Tersier</label>
-                                <select
-                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm"
-                                    value={klasifikasi.tersierId}
-                                    onChange={e => setKlasifikasi(p => ({ ...p, tersierId: e.target.value }))}
-                                    disabled={!klasifikasi.sekunderId}
-                                >
-                                    <option value="">-- Pilih Tersier --</option>
-                                    {tersiers.map((t: any) => <option key={t.id} value={t.id}>{t.kode} - {t.nama}</option>)}
-                                </select>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">Nomor Surat</label>
+                                <input
+                                    type="text"
+                                    placeholder="Contoh: 1046/IT3/TM.00.00/P/B/2026"
+                                    className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+                                    value={nomorSuratInput}
+                                    onChange={e => setNomorSuratInput(e.target.value)}
+                                />
                             </div>
 
                             <div>
@@ -430,14 +369,14 @@ export default function DetailSuratPage() {
 
                         <div className="flex gap-4 pt-2">
                             <button
-                                onClick={() => { setShowProsesModal(false); setSelectedFile(null); }}
+                                onClick={() => { setShowProsesModal(false); setSelectedFile(null); setNomorSuratInput(""); }}
                                 className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={() => submitAction("proses", selectedFile as File)}
-                                disabled={!klasifikasi.tersierId || !selectedFile || actionLoading}
+                                disabled={!nomorSuratInput.trim() || !selectedFile || actionLoading}
                                 className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition disabled:opacity-50"
                             >
                                 {actionLoading ? "Menyimpan..." : "Proses & Buat Draft"}
