@@ -14,7 +14,7 @@ const MAX_CHIPS = 10;
 interface TagInputProps {
     chips: string[];
     inputValue: string;
-    inputRef: RefObject<HTMLInputElement>;
+    inputRef: RefObject<HTMLInputElement | null>;
     onInputChange: (val: string) => void;
     onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
     onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void;
