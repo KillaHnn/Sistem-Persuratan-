@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     FileText, Clock, CheckCircle, XCircle, RotateCcw, Archive,
-    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle
+    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle, Download, X
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
@@ -53,6 +53,8 @@ export default function DetailSuratPage() {
     const [successMessage, setSuccessMessage] = useState("");
     const [showProsesModal, setShowProsesModal] = useState(false);
     const [nomorSuratInput, setNomorSuratInput] = useState("");
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewName, setPreviewName] = useState<string | null>(null);
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -492,16 +494,27 @@ export default function DetailSuratPage() {
                                     displayValue = <span className="text-gray-400 italic">-</span>;
                                 } else if (k.includes('tanggal')) {
                                     displayValue = new Date(String(v)).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+                                } else if (k === "ditujukan_kepada" && String(v).includes("\n")) {
+                                    const names = String(v).split("\n").filter(Boolean);
+                                    displayValue = (
+                                        <ol className="list-decimal list-inside space-y-1 mt-1">
+                                            {names.map((name, i) => (
+                                                <li key={i} className="text-sm text-gray-800">
+                                                    {name.trim()}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    );
                                 }
 
                                 return (
-                                    <div key={k} className="bg-gray-50 rounded-xl p-4">
+                                    <div key={k} className={`bg-gray-50 rounded-xl p-4${k === "ditujukan_kepada" && String(v).includes("\n") ? " sm:col-span-2" : ""}`}>
                                         <p className="text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1">
                                             {k.replace(/_/g, " ")}
                                         </p>
-                                        <p className="text-sm text-gray-800 font-medium">
+                                        <div className="text-sm text-gray-800 font-medium">
                                             {displayValue}
-                                        </p>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -550,13 +563,15 @@ export default function DetailSuratPage() {
                     </h2>
                     <div className="space-y-3">
                         {surat.dokumens.map((dok: any) => (
-                            <a key={dok.id}
-                                href={`${API_BASE}/storage/${dok.path_file}`}
-                                target="_blank" rel="noopener noreferrer"
-                                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 border border-transparent hover:border-orange-200 rounded-2xl transition group">
+                            <button key={dok.id}
+                                onClick={() => {
+                                    setPreviewUrl(`${API_BASE}/storage/${dok.path_file}`);
+                                    setPreviewName(dok.nama_file);
+                                }}
+                                className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 border border-transparent hover:border-orange-200 rounded-2xl transition group">
                                 <div className="flex items-center gap-3">
                                     <FileText size={18} className="text-orange-500" />
-                                    <div>
+                                    <div className="text-left">
                                         <p className="text-sm font-medium text-gray-800 group-hover:text-orange-600 transition">
                                             {dok.nama_file}
                                         </p>
@@ -566,7 +581,7 @@ export default function DetailSuratPage() {
                                     </div>
                                 </div>
                                 <ArrowLeft size={16} className="text-gray-400 rotate-[225deg] group-hover:text-orange-500 transition" />
-                            </a>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -664,6 +679,65 @@ export default function DetailSuratPage() {
                             </button>
                         </div>
                     )}
+                </div>
+            )}
+            {/* Modal Preview Dokumen */}
+            {previewUrl && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 sm:p-8 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+                        {/* Header Modal */}
+                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                            <div className="flex items-center gap-3 min-w-0 pr-4">
+                                <FileText size={24} className="text-orange-500 shrink-0" />
+                                <h3 className="font-bold text-gray-800 truncate">{previewName}</h3>
+                            </div>
+                            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                                <a href={previewUrl} download target="_blank" rel="noopener noreferrer" 
+                                    className="flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 bg-orange-100 hover:bg-orange-200 px-4 py-2 rounded-xl transition">
+                                    <Download size={16} />
+                                    <span className="hidden sm:inline">Download</span>
+                                </a>
+                                <button onClick={() => setPreviewUrl(null)} 
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+                        {/* Content Modal */}
+                        <div className="flex-1 bg-gray-100 p-2 sm:p-6 overflow-hidden">
+                            {previewUrl.toLowerCase().endsWith('.pdf') ? (
+                                <iframe src={previewUrl} className="w-full h-full rounded-2xl shadow-sm border border-gray-200 bg-white" />
+                            ) : previewUrl.toLowerCase().match(/\.(jpg|jpeg|png)$/) ? (
+                                <div className="w-full h-full flex items-center justify-center bg-white rounded-2xl border border-gray-200 shadow-sm p-4 overflow-auto">
+                                    <img src={previewUrl} alt={previewName || "Preview"} className="max-w-full object-contain" />
+                                </div>
+                            ) : previewUrl.toLowerCase().match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/) ? (
+                                <div className="w-full h-full flex flex-col rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-white">
+                                    <div className="bg-blue-50 text-blue-700 text-xs text-center py-2 px-4 border-b border-blue-100 flex items-center justify-center gap-2">
+                                        <AlertCircle size={14} />
+                                        Preview ini menggunakan layanan eksternal. Hanya berfungsi jika aplikasi sudah di-deploy secara publik (Online).
+                                    </div>
+                                    <iframe 
+                                        src={`https://docs.google.com/gview?url=${encodeURIComponent(previewUrl)}&embedded=true`} 
+                                        className="w-full flex-1" 
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-center bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                                    <FileText size={64} className="text-gray-300 mb-4" />
+                                    <p className="text-lg font-bold text-gray-800">Preview Tidak Tersedia</p>
+                                    <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto">
+                                        Browser tidak dapat mempreview file dengan jenis ini secara langsung. Silakan download file untuk melihatnya.
+                                    </p>
+                                    <a href={previewUrl} download target="_blank" rel="noopener noreferrer" 
+                                        className="mt-6 flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition shadow-sm">
+                                        <Download size={18} />
+                                        Download File
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

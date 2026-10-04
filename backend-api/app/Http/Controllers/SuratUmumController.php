@@ -56,11 +56,19 @@ class SuratUmumController extends Controller
      */
     public function store(Request $request)
     {
+        // Jika ada file_penerima tapi ditujukan_kepada kosong, isi dengan default
+        if ($request->hasFile('file_penerima') && empty($request->input('detail.ditujukan_kepada'))) {
+            $detail = $request->input('detail', []);
+            $detail['ditujukan_kepada'] = 'Terlampir dalam dokumen daftar penerima';
+            $request->merge(['detail' => $detail]);
+        }
+
         $request->validate([
             'jenis_surat' => 'required|in:undangan,surat_tugas,surat_pengantar,surat_keterangan,surat_permohonan,surat_keputusan,lainnya',
             'perihal'     => 'required|string',
             'detail'      => 'required|array',
             'lampiran'    => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:10240', // Optional, max 10MB
+            'file_penerima' => 'nullable|file|max:10240', // File daftar penerima, semua jenis, max 10MB
         ]);
 
         // Validasi detail sesuai jenis surat
@@ -95,6 +103,23 @@ class SuratUmumController extends Controller
                 $file = $request->file('lampiran');
                 $originalName = $file->getClientOriginalName();
                 $filename = str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . "_v1." . $file->getClientOriginalExtension();
+                $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
+
+                \App\Models\DokumenSurat::create([
+                    'surat_umum_id' => $surat->id,
+                    'tipe_dokumen'  => 'lampiran_pendukung',
+                    'nama_file'     => $originalName,
+                    'path_file'     => $path,
+                    'versi'         => 1,
+                    'uploaded_by'   => Auth::id(),
+                ]);
+            }
+
+            // 3b. Simpan file daftar penerima jika ada
+            if ($request->hasFile('file_penerima')) {
+                $file = $request->file('file_penerima');
+                $originalName = $file->getClientOriginalName();
+                $filename = 'daftar_penerima_' . str_replace(' ', '_', pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs("dokumen-surat/{$surat->id}", $filename, 'public');
 
                 \App\Models\DokumenSurat::create([
