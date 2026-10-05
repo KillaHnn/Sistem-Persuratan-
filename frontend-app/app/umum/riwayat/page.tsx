@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
     FileText, Clock, CheckCircle, RotateCcw,
-    Archive, ChevronRight, AlertCircle, Search, X,
+    Archive, ChevronRight, ChevronLeft, AlertCircle, Search, X, Calendar,
 } from "lucide-react";
 
 type SuratUmum = {
@@ -37,7 +37,13 @@ const JENIS_MAP: Record<string, string> = {
     lainnya: "Lainnya",
 };
 
-const emptyForm = { tahun: "", jenis_surat: "", nomor_surat: "", perihal: "" };
+const emptyForm = { tahun: "", bulan: "", jenis_surat: "", nomor_surat: "", perihal: "" };
+
+const BULAN_MAP: Record<string, string> = {
+    "1": "Januari", "2": "Februari", "3": "Maret", "4": "April",
+    "5": "Mei", "6": "Juni", "7": "Juli", "8": "Agustus",
+    "9": "September", "10": "Oktober", "11": "November", "12": "Desember",
+};
 
 type SearchModalProps = {
     title: string;
@@ -47,9 +53,47 @@ type SearchModalProps = {
     onApply: () => void;
     onReset: () => void;
     onClose: () => void;
+    matchingNomorSurat?: string[];
+    availableTahun?: string[];
 };
 
-function SearchModal({ title, subtitle, form, onChange, onApply, onReset, onClose }: SearchModalProps) {
+function SearchModal({ title, subtitle, form, onChange, onApply, onReset, onClose, matchingNomorSurat = [], availableTahun = [] }: SearchModalProps) {
+    const [showYearPicker, setShowYearPicker] = useState(false);
+    const [yearPage, setYearPage] = useState(0); // for pagination of years grid
+    const yearPickerRef = useRef<HTMLDivElement>(null);
+    const [showMonthPicker, setShowMonthPicker] = useState(false);
+    const monthPickerRef = useRef<HTMLDivElement>(null);
+
+    // Generate years range: current year down to 2000
+    const currentYear = new Date().getFullYear();
+    const allYears: number[] = [];
+    for (let y = currentYear; y >= 2000; y--) allYears.push(y);
+    const yearsPerPage = 12;
+    const totalPages = Math.ceil(allYears.length / yearsPerPage);
+    const pagedYears = allYears.slice(yearPage * yearsPerPage, (yearPage + 1) * yearsPerPage);
+
+    // Close year picker on click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (yearPickerRef.current && !yearPickerRef.current.contains(e.target as Node)) {
+                setShowYearPicker(false);
+            }
+        };
+        if (showYearPicker) document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showYearPicker]);
+
+    // Close month picker on click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (monthPickerRef.current && !monthPickerRef.current.contains(e.target as Node)) {
+                setShowMonthPicker(false);
+            }
+        };
+        if (showMonthPicker) document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showMonthPicker]);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
@@ -72,17 +116,148 @@ function SearchModal({ title, subtitle, form, onChange, onApply, onReset, onClos
                 </div>
 
                 <div className="p-5 sm:p-6 space-y-4">
-                    <div>
+                    <div className="relative" ref={yearPickerRef}>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tahun Surat</label>
-                        <input
-                            type="number"
-                            placeholder="Contoh: 2026"
-                            min="2000"
-                            max="2099"
-                            value={form.tahun}
-                            onChange={e => onChange({ ...form, tahun: e.target.value })}
-                            className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 bg-gray-50"
-                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowYearPicker(!showYearPicker)}
+                            className={`w-full p-3 border rounded-xl text-sm text-left flex items-center justify-between transition ${
+                                showYearPicker
+                                    ? "border-orange-500 ring-2 ring-orange-100 bg-white"
+                                    : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                            }`}
+                        >
+                            <span className={form.tahun ? "text-gray-900 font-medium" : "text-gray-400"}>
+                                {form.tahun || "Pilih tahun..."}
+                            </span>
+                            <Calendar size={16} className={showYearPicker ? "text-orange-500" : "text-gray-400"} />
+                        </button>
+
+                        {showYearPicker && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-xl z-10 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                {/* Navigation */}
+                                <div className="flex items-center justify-between mb-2 px-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setYearPage(p => Math.max(0, p - 1))}
+                                        disabled={yearPage === 0}
+                                        className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                    >
+                                        <ChevronLeft size={16} className="text-gray-600" />
+                                    </button>
+                                    <span className="text-xs font-medium text-gray-500">
+                                        {pagedYears[pagedYears.length - 1]} – {pagedYears[0]}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setYearPage(p => Math.min(totalPages - 1, p + 1))}
+                                        disabled={yearPage >= totalPages - 1}
+                                        className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                                    >
+                                        <ChevronRight size={16} className="text-gray-600" />
+                                    </button>
+                                </div>
+                                {/* Year grid */}
+                                <div className="grid grid-cols-4 gap-1.5">
+                                    {pagedYears.map(y => {
+                                        const ys = y.toString();
+                                        const hasData = availableTahun.includes(ys);
+                                        const isSelected = form.tahun === ys;
+                                        return (
+                                            <button
+                                                key={y}
+                                                type="button"
+                                                onClick={() => {
+                                                    onChange({ ...form, tahun: ys, bulan: "", nomor_surat: "" });
+                                                    setShowYearPicker(false);
+                                                }}
+                                                className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    isSelected
+                                                        ? "bg-orange-500 text-white shadow-sm"
+                                                        : hasData
+                                                            ? "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200"
+                                                            : "text-gray-400 hover:bg-gray-50 cursor-default"
+                                                }`}
+                                                disabled={!hasData}
+                                            >
+                                                {y}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {/* Clear button */}
+                                {form.tahun && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onChange({ ...form, tahun: "", bulan: "", nomor_surat: "" });
+                                            setShowYearPicker(false);
+                                        }}
+                                        className="w-full mt-2 py-1.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition font-medium"
+                                    >
+                                        Hapus pilihan tahun
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative" ref={monthPickerRef}>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Bulan Surat</label>
+                        <button
+                            type="button"
+                            onClick={() => setShowMonthPicker(!showMonthPicker)}
+                            className={`w-full p-3 border rounded-xl text-sm text-left flex items-center justify-between transition ${
+                                showMonthPicker
+                                    ? "border-orange-500 ring-2 ring-orange-100 bg-white"
+                                    : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                            }`}
+                        >
+                            <span className={form.bulan ? "text-gray-900 font-medium" : "text-gray-400"}>
+                                {form.bulan ? BULAN_MAP[form.bulan] : "Pilih bulan..."}
+                            </span>
+                            <Calendar size={16} className={showMonthPicker ? "text-orange-500" : "text-gray-400"} />
+                        </button>
+
+                        {showMonthPicker && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-xl z-10 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                {/* Month grid */}
+                                <div className="grid grid-cols-3 gap-1.5">
+                                    {Object.entries(BULAN_MAP).map(([k, v]) => {
+                                        const isSelected = form.bulan === k;
+                                        return (
+                                            <button
+                                                key={k}
+                                                type="button"
+                                                onClick={() => {
+                                                    onChange({ ...form, bulan: k, nomor_surat: "" });
+                                                    setShowMonthPicker(false);
+                                                }}
+                                                className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    isSelected
+                                                        ? "bg-orange-500 text-white shadow-sm"
+                                                        : "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200"
+                                                }`}
+                                            >
+                                                {v}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {/* Clear button */}
+                                {form.bulan && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onChange({ ...form, bulan: "", nomor_surat: "" });
+                                            setShowMonthPicker(false);
+                                        }}
+                                        className="w-full mt-2 py-1.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition font-medium"
+                                    >
+                                        Hapus pilihan bulan
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Jenis Surat</label>
@@ -99,13 +274,51 @@ function SearchModal({ title, subtitle, form, onChange, onApply, onReset, onClos
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">No Surat</label>
-                        <input
-                            type="text"
-                            placeholder="Contoh: 123/UN.1/DT/2026"
-                            value={form.nomor_surat}
-                            onChange={e => onChange({ ...form, nomor_surat: e.target.value })}
-                            className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 bg-gray-50 font-mono"
-                        />
+                        {form.tahun && form.bulan && matchingNomorSurat.length > 0 ? (
+                            <>
+                                <select
+                                    value={form.nomor_surat}
+                                    onChange={e => onChange({ ...form, nomor_surat: e.target.value })}
+                                    className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 bg-gray-50 font-mono"
+                                >
+                                    <option value="">-- Pilih Nomor Surat --</option>
+                                    {matchingNomorSurat.map((nomor, idx) => (
+                                        <option key={idx} value={nomor}>{nomor}</option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Ditemukan {matchingNomorSurat.length} nomor surat di {BULAN_MAP[form.bulan]} {form.tahun}
+                                </p>
+                            </>
+                        ) : form.tahun && form.bulan && matchingNomorSurat.length === 0 ? (
+                            <>
+                                <input
+                                    type="text"
+                                    placeholder="Contoh: 123/UN.1/DT/2026"
+                                    value={form.nomor_surat}
+                                    onChange={e => onChange({ ...form, nomor_surat: e.target.value })}
+                                    className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 bg-gray-50 font-mono"
+                                />
+                                <p className="text-xs text-orange-500 mt-1">
+                                    Tidak ada nomor surat di {BULAN_MAP[form.bulan]} {form.tahun}
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <input
+                                    type="text"
+                                    placeholder="Contoh: 123/UN.1/DT/2026"
+                                    value={form.nomor_surat}
+                                    onChange={e => onChange({ ...form, nomor_surat: e.target.value })}
+                                    className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 bg-gray-50 font-mono"
+                                />
+                                {!form.tahun || !form.bulan ? (
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Isi tahun dan bulan untuk melihat daftar nomor surat
+                                    </p>
+                                ) : null}
+                            </>
+                        )}
                     </div>
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Perihal Surat</label>
@@ -215,10 +428,12 @@ export default function RiwayatPage() {
             // Filter dari modal cari arsip
             if (hasArsipSearched) {
                 const tahun = arsipApplied.tahun.trim();
+                const bulan = arsipApplied.bulan.trim();
                 const jenis = arsipApplied.jenis_surat.trim();
                 const nomor = arsipApplied.nomor_surat.trim().toLowerCase();
                 const perihal = arsipApplied.perihal.trim().toLowerCase();
                 if (tahun && !new Date(s.tgl_permohonan).getFullYear().toString().includes(tahun)) return false;
+                if (bulan && (new Date(s.tgl_permohonan).getMonth() + 1).toString() !== bulan) return false;
                 if (jenis && s.jenis_surat !== jenis) return false;
                 if (nomor && !(s.nomor_surat || "").toLowerCase().includes(nomor)) return false;
                 if (perihal && !s.perihal.toLowerCase().includes(perihal)) return false;
@@ -228,10 +443,12 @@ export default function RiwayatPage() {
         // Pemohon: filter dari modal cari
         if (hasSearched) {
             const tahun = cariApplied.tahun.trim();
+            const bulan = cariApplied.bulan.trim();
             const jenis = cariApplied.jenis_surat.trim();
             const nomor = cariApplied.nomor_surat.trim().toLowerCase();
             const perihal = cariApplied.perihal.trim().toLowerCase();
             if (tahun && !new Date(s.tgl_permohonan).getFullYear().toString().includes(tahun)) return false;
+            if (bulan && (new Date(s.tgl_permohonan).getMonth() + 1).toString() !== bulan) return false;
             if (jenis && s.jenis_surat !== jenis) return false;
             if (nomor && !(s.nomor_surat || "").toLowerCase().includes(nomor)) return false;
             if (perihal && !s.perihal.toLowerCase().includes(perihal)) return false;
@@ -270,6 +487,29 @@ export default function RiwayatPage() {
     };
     const hasArsipFilter = hasArsipSearched && Object.values(arsipApplied).some(v => v.trim() !== "");
 
+    // Helper: get daftar tahun unik dari data surat
+    const getAvailableTahun = (data: SuratUmum[]): string[] => {
+        const years = data
+            .map(s => new Date(s.tgl_permohonan).getFullYear().toString())
+            .filter(Boolean);
+        return [...new Set(years)].sort((a, b) => Number(b) - Number(a));
+    };
+
+    // Helper: get nomor surat yang cocok dengan tahun+bulan dari form
+    const getMatchingNomorSurat = (form: typeof emptyForm, data: SuratUmum[]): string[] => {
+        const tahun = form.tahun.trim();
+        const bulan = form.bulan.trim();
+        if (!tahun || !bulan) return [];
+        const matched = data
+            .filter(s => {
+                const d = new Date(s.tgl_permohonan);
+                return d.getFullYear().toString() === tahun && (d.getMonth() + 1).toString() === bulan && s.nomor_surat;
+            })
+            .map(s => s.nomor_surat as string);
+        // Remove duplicates
+        return [...new Set(matched)];
+    };
+
     return (
         <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
             {/* Header */}
@@ -306,6 +546,7 @@ export default function RiwayatPage() {
                 <div className="flex flex-wrap gap-2 items-center">
                     <span className="font-medium text-gray-600 text-xs">Filter aktif:</span>
                     {cariApplied.tahun && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Tahun: {cariApplied.tahun}</span>}
+                    {cariApplied.bulan && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Bulan: {BULAN_MAP[cariApplied.bulan]}</span>}
                     {cariApplied.jenis_surat && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Jenis: {JENIS_MAP[cariApplied.jenis_surat] || cariApplied.jenis_surat}</span>}
                     {cariApplied.nomor_surat && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">No: {cariApplied.nomor_surat}</span>}
                     {cariApplied.perihal && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Perihal: {cariApplied.perihal}</span>}
@@ -318,6 +559,7 @@ export default function RiwayatPage() {
                 <div className="flex flex-wrap gap-2 items-center">
                     <span className="font-medium text-gray-600 text-xs">Filter aktif:</span>
                     {arsipApplied.tahun && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Tahun: {arsipApplied.tahun}</span>}
+                    {arsipApplied.bulan && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Bulan: {BULAN_MAP[arsipApplied.bulan]}</span>}
                     {arsipApplied.jenis_surat && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Jenis: {JENIS_MAP[arsipApplied.jenis_surat] || arsipApplied.jenis_surat}</span>}
                     {arsipApplied.nomor_surat && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">No: {arsipApplied.nomor_surat}</span>}
                     {arsipApplied.perihal && <span className="bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-medium">Perihal: {arsipApplied.perihal}</span>}
@@ -420,6 +662,8 @@ export default function RiwayatPage() {
                     onApply={handleApplyCari}
                     onReset={handleResetCari}
                     onClose={() => setShowCariModal(false)}
+                    matchingNomorSurat={getMatchingNomorSurat(cariForm, surats)}
+                    availableTahun={getAvailableTahun(surats)}
                 />
             )}
 
@@ -433,6 +677,8 @@ export default function RiwayatPage() {
                     onApply={handleApplyArsip}
                     onReset={handleResetArsip}
                     onClose={() => setShowArsipModal(false)}
+                    matchingNomorSurat={getMatchingNomorSurat(arsipForm, surats.filter(s => s.status === "diarsipkan"))}
+                    availableTahun={getAvailableTahun(userRole === "sekretariat" ? surats.filter(s => s.status === "diarsipkan") : surats)}
                 />
             )}
         </div>
