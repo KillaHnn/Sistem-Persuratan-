@@ -718,7 +718,7 @@ export default function DetailSuratPage() {
                                         Preview ini menggunakan layanan eksternal. Hanya berfungsi jika aplikasi sudah di-deploy secara publik (Online).
                                     </div>
                                     <iframe 
-                                        src={`https://docs.google.com/gview?url=${encodeURIComponent(previewUrl)}&embedded=true`} 
+                                        src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`} 
                                         className="w-full flex-1" 
                                     />
                                 </div>
