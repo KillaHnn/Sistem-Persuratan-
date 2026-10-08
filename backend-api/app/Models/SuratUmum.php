@@ -22,10 +22,7 @@ class SuratUmum extends Model
         'tgl_permohonan',
         'tgl_selesai',
         'hasil_arsip',
-        // classification foreign keys and nomor surat reference
-        'klasifikasi_primer_id',
-        'klasifikasi_sekunder_id',
-        'klasifikasi_tersier_id',
+        // nomor surat reference
         'nomor_surat_id',
     ];
 
@@ -122,21 +119,7 @@ class SuratUmum extends Model
         return $this->hasOne(ArsipSurat::class);
     }
 
-    // ── Classification Relationships ────────────────────────
-    public function klasifikasiPrimer()
-    {
-        return $this->belongsTo(KlasifikasiPrimer::class, 'klasifikasi_primer_id');
-    }
-
-    public function klasifikasiSekunder()
-    {
-        return $this->belongsTo(KlasifikasiSekunder::class, 'klasifikasi_sekunder_id');
-    }
-
-    public function klasifikasiTersier()
-    {
-        return $this->belongsTo(KlasifikasiTersier::class, 'klasifikasi_tersier_id');
-    }
+    // ── Surat References ────────────────────────
 
     public function nomorSurat()
     {

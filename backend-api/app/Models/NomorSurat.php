@@ -8,10 +8,6 @@ class NomorSurat extends Model
 {
     protected $table = 'nomor_surats';
     protected $fillable = [
-        'klasifikasi_primer',
-        'klasifikasi_sekunder',
-        'klasifikasi_tersier',
-        'jenis_arsip',
         'nomor_surat',
         'nomor_urut',
         'kode_surat',
@@ -26,10 +22,9 @@ class NomorSurat extends Model
 
         static::creating(function ($model) {
             $year = date('Y', strtotime($model->tanggal_surat));
-            $model->kode_surat = $model->klasifikasi_tersier;
             
-            // Get the last nomor_urut for the same classification and year
-            $lastSurat = static::where('klasifikasi_tersier', $model->klasifikasi_tersier)
+            // Get the last nomor_urut for the same kode_surat and year
+            $lastSurat = static::where('kode_surat', $model->kode_surat)
                 ->whereYear('tanggal_surat', $year)
                 ->orderBy('nomor_urut', 'desc')
                 ->first();

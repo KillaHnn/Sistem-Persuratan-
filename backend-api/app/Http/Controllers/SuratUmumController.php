@@ -20,7 +20,7 @@ class SuratUmumController extends Controller
      * Daftar surat — filtered by role:
      * - pemohon: hanya surat miliknya
      * - sekretariat/kabag_tu: semua surat
-     * - wakil_dekan/dekan: surat yang sudah diverifikasi ke atas
+     * - wakil_dekan: surat yang sudah diverifikasi ke atas
      */
     public function index(Request $request)
     {
@@ -32,7 +32,7 @@ class SuratUmumController extends Controller
             $query->where('pemohon_id', $user->id);
         } elseif ($user->role === 'kabag_tu') {
             $query->where('status', '!=', 'dikembalikan');
-        } elseif (in_array($user->role, ['wakil_dekan', 'dekan'])) {
+        } elseif ($user->role === 'wakil_dekan') {
             $query->whereIn('status', ['diverifikasi', 'ditandatangani', 'selesai', 'diarsipkan']);
         }
         // sekretariat bisa lihat semua

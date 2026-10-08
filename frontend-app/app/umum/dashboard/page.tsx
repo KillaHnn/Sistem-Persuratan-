@@ -19,7 +19,6 @@ import DashboardPemohon from "../components/DashboardPemohon";
 import DashboardSekretariat from "../components/DashboardSekretariat";
 import DashboardKabagTU from "../components/DashboardKabagTU";
 import DashboardWadek from "../components/DashboardWadek";
-import DashboardDekan from "../components/DashboardDekan";
 
 type SuratUmum = {
     id: number;
@@ -270,8 +269,6 @@ export default function DashboardPage() {
             return <DashboardKabagTU {...sharedProps} />;
         case "wakil_dekan":
             return <DashboardWadek {...sharedProps} />;
-        case "dekan":
-            return <DashboardDekan {...sharedProps} />;
         default:
             return <DashboardPemohon {...sharedProps} userName={userName} />;
     }

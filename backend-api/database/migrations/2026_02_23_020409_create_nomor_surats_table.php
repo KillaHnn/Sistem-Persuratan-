@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('nomor_surats', function (Blueprint $table) {
             $table->id();
-            $table->string('klasifikasi_primer');
-            $table->string('klasifikasi_sekunder');
-            $table->string('klasifikasi_tersier');
-            $table->string('jenis_arsip');
+
             $table->string('nomor_surat')->unique();
             $table->integer('nomor_urut');
             $table->string('kode_surat');

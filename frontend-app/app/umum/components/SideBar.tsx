@@ -103,7 +103,6 @@ export default function Sidebar() {
         sekretariat: "Sekretariat",
         kabag_tu: "Kabag TU",
         wakil_dekan: "Wakil Dekan",
-        dekan: "Dekan",
         superadmin: "Superadmin",
     };
 

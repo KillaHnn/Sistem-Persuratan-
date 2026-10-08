@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     // Roles yang dikelola oleh modul persuratan umum
-    private const MANAGED_ROLES = ['superadmin', 'pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan', 'dekan'];
+    private const MANAGED_ROLES = ['superadmin', 'pemohon', 'sekretariat', 'kabag_tu', 'wakil_dekan'];
 
     /**
      * Display a listing of the users.

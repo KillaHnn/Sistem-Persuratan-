@@ -47,7 +47,6 @@ export default function LoginPage() {
                     sekretariat: "/umum/dashboard",
                     kabag_tu: "/umum/dashboard",
                     wakil_dekan: "/umum/dashboard",
-                    dekan: "/umum/dashboard",
                     superadmin: "/umum/users"
                 };
 

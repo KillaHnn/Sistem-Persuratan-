@@ -16,6 +16,5 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(PersuratanUmumSeeder::class);
-        $this->call(KlasifikasiSeeder::class);
     }
 }

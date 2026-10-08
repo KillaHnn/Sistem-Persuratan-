@@ -17,11 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('users/{id}/reset-password', [App\Http\Controllers\UserController::class, 'resetPassword']);
     });
 
-    // Classifications
-    Route::get('klasifikasi/primer', [App\Http\Controllers\KlasifikasiController::class, 'getPrimers']);
-    Route::get('klasifikasi/sekunder/{primer_id}', [App\Http\Controllers\KlasifikasiController::class, 'getSekunders']);
-    Route::get('klasifikasi/tersier/{sekunder_id}', [App\Http\Controllers\KlasifikasiController::class, 'getTersiers']);
-    
     Route::apiResource('nomor-surat', App\Http\Controllers\NomorSuratController::class);
 
     // ── AUTH: Logout ─────────────────────────────────

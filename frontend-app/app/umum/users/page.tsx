@@ -325,7 +325,6 @@ export default function UserManagementPage() {
                                     <option value="sekretariat">Sekretariat</option>
                                     <option value="kabag_tu">Kabag TU</option>
                                     <option value="wakil_dekan">Wakil Dekan</option>
-                                    <option value="dekan">Dekan</option>
                                 </select>
                             </div>
                             <div>

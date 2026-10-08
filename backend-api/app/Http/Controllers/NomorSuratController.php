@@ -22,10 +22,7 @@ class NomorSuratController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'klasifikasi_primer' => 'required|string',
-            'klasifikasi_sekunder' => 'required|string',
-            'klasifikasi_tersier' => 'required|string',
-            'jenis_arsip' => 'required|string',
+            'kode_surat' => 'required|string',
             'tanggal_surat' => 'required|date',
             'hal_surat' => 'required|string',
             'isi_surat' => 'required|string',
@@ -51,10 +48,7 @@ class NomorSuratController extends Controller
     public function update(Request $request, NomorSurat $nomorSurat)
     {
         $validated = $request->validate([
-            'klasifikasi_primer' => 'sometimes|required|string',
-            'klasifikasi_sekunder' => 'sometimes|required|string',
-            'klasifikasi_tersier' => 'sometimes|required|string',
-            'jenis_arsip' => 'sometimes|required|string',
+            'kode_surat' => 'sometimes|required|string',
             'tanggal_surat' => 'sometimes|required|date',
             'hal_surat' => 'sometimes|required|string',
             'isi_surat' => 'sometimes|required|string',
