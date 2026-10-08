@@ -10,9 +10,11 @@ use App\Models\DetailSuratKeteranganUmum;
 use App\Models\DetailSuratPermohonan;
 use App\Models\DetailSuratLainnya;
 use App\Models\NotifikasiSurat;
+use App\Notifications\SuratStatusNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SuratUmumController extends Controller
 {
@@ -293,27 +295,42 @@ class SuratUmumController extends Controller
 
     private function notifySekretariat(SuratUmum $surat): void
     {
-        // Pastikan relasi pemohon sudah ter-load
         $surat->loadMissing('pemohon');
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-        // Notifikasi ke pemohon: surat berhasil dibuat
+        // Notifikasi ke pemohon: surat berhasil dibuat (in-app saja)
+        $judulPemohon = 'Permohonan Surat Dibuat';
+        $pesanPemohon = "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang diproses oleh sekretariat.";
         NotifikasiSurat::create([
             'surat_umum_id' => $surat->id,
             'user_id'       => $surat->pemohon_id,
-            'judul'         => 'Permohonan Surat Dibuat',
-            'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang diproses oleh sekretariat.",
+            'judul'         => $judulPemohon,
+            'pesan'         => $pesanPemohon,
         ]);
 
-        // Notifikasi ke semua sekretariat: surat baru masuk
+        // Notifikasi + Email ke semua sekretariat: surat baru masuk
         $sekretariats = \App\Models\User::where('role', 'sekretariat')->get();
         foreach ($sekretariats as $sekretariat) {
+            $judulSekre = 'Permohonan Surat Baru';
+            $pesanSekre = "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} baru masuk dan perlu diproses.";
             NotifikasiSurat::create([
                 'surat_umum_id' => $surat->id,
                 'user_id'       => $sekretariat->id,
-                'judul'         => 'Permohonan Surat Baru',
-                'pesan'         => "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} baru masuk dan perlu diproses.",
+                'judul'         => $judulSekre,
+                'pesan'         => $pesanSekre,
             ]);
+            try {
+                $sekretariat->notify(new SuratStatusNotification(
+                    judul:       $judulSekre,
+                    pesan:       $pesanSekre,
+                    status:      'menunggu',
+                    suratId:     $surat->id,
+                    perihal:     $surat->perihal,
+                    namaPemohon: $namaPemohon,
+                ));
+            } catch (\Throwable $e) {
+                Log::error("Gagal kirim email ke sekretariat {$sekretariat->id}: " . $e->getMessage());
+            }
         }
     }
 }

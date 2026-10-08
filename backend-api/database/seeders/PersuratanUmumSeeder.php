@@ -26,7 +26,7 @@ class PersuratanUmumSeeder extends Seeder
             [
                 'name'     => 'Super Admin',
                 'username' => 'admin01',
-                'email'    => 'admin01@ssdmi.ac.id',
+                'email'    => 'admin01@SSMI.ac.id',
                 'password' => Hash::make('password'),
                 'role'     => 'superadmin',
                 'unit_kerja' => 'Pusat',
@@ -35,7 +35,7 @@ class PersuratanUmumSeeder extends Seeder
             [
                 'name'     => 'Ahmad Pemohon',
                 'username' => 'pemohon01',
-                'email'    => 'pemohon01@ssdmi.ac.id',
+                'email'    => 'pemohon01@SSMI.ac.id',
                 'password' => Hash::make('password'),
                 'role'     => 'pemohon',
                 'unit_kerja' => 'Prodi Informatika',
@@ -44,7 +44,7 @@ class PersuratanUmumSeeder extends Seeder
             [
                 'name'     => 'Siti Sekretariat',
                 'username' => 'sekretariat01',
-                'email'    => 'sekretariat01@ssdmi.ac.id',
+                'email'    => 'sekretariat01@SSMI.ac.id',
                 'password' => Hash::make('password'),
                 'role'     => 'sekretariat',
                 'unit_kerja' => 'Sekretariat Dekanat',
@@ -53,7 +53,7 @@ class PersuratanUmumSeeder extends Seeder
             [
                 'name'     => 'Budi Kabag TU',
                 'username' => 'kabagtu01',
-                'email'    => 'kabagtu01@ssdmi.ac.id',
+                'email'    => 'kabagtu01@SSMI.ac.id',
                 'password' => Hash::make('password'),
                 'role'     => 'kabag_tu',
                 'unit_kerja' => 'Bagian TU',
@@ -62,7 +62,7 @@ class PersuratanUmumSeeder extends Seeder
             [
                 'name'     => 'Dr. Rina Wakil Dekan',
                 'username' => 'wadek01',
-                'email'    => 'wadek01@ssdmi.ac.id',
+                'email'    => 'wadek01@SSMI.ac.id',
                 'password' => Hash::make('password'),
                 'role'     => 'wakil_dekan',
                 'unit_kerja' => 'Dekanat',

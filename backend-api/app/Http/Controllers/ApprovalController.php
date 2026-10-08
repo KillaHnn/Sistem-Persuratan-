@@ -6,9 +6,12 @@ use App\Models\SuratUmum;
 use App\Models\ApprovalLog;
 use App\Models\DokumenSurat;
 use App\Models\NotifikasiSurat;
+use App\Models\User;
+use App\Notifications\SuratStatusNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ApprovalController extends Controller
 {
@@ -58,7 +61,7 @@ class ApprovalController extends Controller
         return "{$jenis}_{$nomorUrut}_{$tgl}_{$nama}_{$tipe}_v{$versi}.{$ext}";
     }
 
-    // ── Helper: kirim notifikasi ke sekumpulan user ─────────────────────────
+    // ── Helper: kirim notifikasi in-app ke sekumpulan user ─────────────────────────
     private function sendNotif(int $suratId, array $userIds, string $judul, string $pesan): void
     {
         foreach ($userIds as $userId) {
@@ -69,6 +72,33 @@ class ApprovalController extends Controller
                     'judul'         => $judul,
                     'pesan'         => $pesan,
                 ]);
+            }
+        }
+    }
+
+    // ── Helper: kirim email notifikasi ke sekumpulan user ───────────────────
+    private function sendEmailNotif(
+        array   $userIds,
+        string  $judul,
+        string  $pesan,
+        string  $status,
+        SuratUmum $surat,
+        ?string $catatan = null
+    ): void {
+        $users = User::whereIn('id', array_filter($userIds))->get();
+        foreach ($users as $user) {
+            try {
+                $user->notify(new SuratStatusNotification(
+                    judul:       $judul,
+                    pesan:       $pesan,
+                    status:      $status,
+                    suratId:     $surat->id,
+                    perihal:     $surat->perihal,
+                    namaPemohon: $surat->pemohon->name ?? 'Pemohon',
+                    catatan:     $catatan
+                ));
+            } catch (\Throwable $e) {
+                Log::error("Gagal kirim email notif ke user {$user->id}: " . $e->getMessage());
             }
         }
     }
@@ -148,22 +178,17 @@ class ApprovalController extends Controller
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-        // Notifikasi ke pemohon: surat sudah diverifikasi sekretariat
-        $this->sendNotif(
-            $surat->id,
-            [$surat->pemohon_id],
-            'Surat Diproses Sekretariat',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} sedang diverifikasi oleh sekretariat."
-        );
+        // Notifikasi ke pemohon: surat sudah diverifikasi sekretariat (in-app saja)
+        $judulPemohon = 'Surat Diproses Sekretariat';
+        $pesanPemohon = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} sedang diverifikasi oleh sekretariat.";
+        $this->sendNotif($surat->id, [$surat->pemohon_id], $judulPemohon, $pesanPemohon);
 
         // Notifikasi ke semua Kabag TU: menunggu verifikasi
-        $kabagTuIds = \App\Models\User::where('role', 'kabag_tu')->pluck('id')->toArray();
-        $this->sendNotif(
-            $surat->id,
-            $kabagTuIds,
-            'Surat Menunggu Verifikasi',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diproses sekretariat dan menunggu verifikasi Anda."
-        );
+        $kabagTuIds = User::where('role', 'kabag_tu')->pluck('id')->toArray();
+        $judulKabag = 'Surat Menunggu Verifikasi';
+        $pesanKabag = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diproses sekretariat dan menunggu verifikasi Anda.";
+        $this->sendNotif($surat->id, $kabagTuIds, $judulKabag, $pesanKabag);
+        $this->sendEmailNotif($kabagTuIds, $judulKabag, $pesanKabag, 'diproses', $surat);
 
         return response()->json([
             'message' => 'Surat berhasil diproses',
@@ -205,22 +230,16 @@ class ApprovalController extends Controller
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-        // Notifikasi ke pemohon: surat terverifikasi Kabag TU
-        $this->sendNotif(
-            $surat->id,
-            [$surat->pemohon_id],
-            'Surat Terverifikasi Kabag TU',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi oleh Kabag TU."
-        );
+        // Notifikasi ke pemohon: surat terverifikasi Kabag TU (in-app saja)
+        $judulPemohon = 'Surat Terverifikasi Kabag TU';
+        $pesanPemohon = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi oleh Kabag TU.";
+        $this->sendNotif($surat->id, [$surat->pemohon_id], $judulPemohon, $pesanPemohon);
 
-        // Notifikasi ke Sekretariat: surat sudah diverifikasi, harap upload berkas yang sudah ditandatangani
-        $sekretariatIds = \App\Models\User::where('role', 'sekretariat')->pluck('id')->toArray();
-        $this->sendNotif(
-            $surat->id,
-            $sekretariatIds,
-            'Surat Siap Diunggah TTD',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi Kabag TU. Mohon upload berkas yang sudah ditandatangani."
-        );
+        // Notifikasi ke Sekretariat: harap upload berkas TTD (in-app saja)
+        $sekretariatIds = User::where('role', 'sekretariat')->pluck('id')->toArray();
+        $judulSekre = 'Surat Siap Diunggah TTD';
+        $pesanSekre = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diverifikasi Kabag TU. Mohon upload berkas yang sudah ditandatangani.";
+        $this->sendNotif($surat->id, $sekretariatIds, $judulSekre, $pesanSekre);
 
         return response()->json([
             'message' => 'Surat berhasil diverifikasi',
@@ -266,24 +285,19 @@ class ApprovalController extends Controller
         ]);
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
-        $catatanText = $request->catatan ? " Catatan: \"{$request->catatan}\"." : '';
+        $catatan     = $request->catatan;
+        $catatanText = $catatan ? " Catatan: \"{$catatan}\"." : '';
 
-        // Notifikasi ke pemohon: surat dikembalikan
-        $this->sendNotif(
-            $surat->id,
-            [$surat->pemohon_id],
-            'Surat Dikembalikan',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} dikembalikan untuk revisi oleh {$user->name}.{$catatanText}"
-        );
+        // Notifikasi ke pemohon: surat dikembalikan (in-app saja)
+        $judulKembali = 'Surat Dikembalikan';
+        $pesanKembali = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} dikembalikan untuk revisi oleh {$user->name}.{$catatanText}";
+        $this->sendNotif($surat->id, [$surat->pemohon_id], $judulKembali, $pesanKembali);
 
-        // Jika yang mengembalikan adalah Kabag TU, notifikasi juga ke sekretariat
+        // Jika yang mengembalikan adalah Kabag TU, notifikasi juga ke sekretariat (in-app saja)
         if ($user->role === 'kabag_tu' && $surat->handler_id) {
-            $this->sendNotif(
-                $surat->id,
-                [$surat->handler_id],
-                'Draft Dikembalikan oleh Kabag TU',
-                "Draft surat \"{$surat->perihal}\" atas nama {$namaPemohon} dikembalikan oleh Kabag TU.{$catatanText} Mohon perbaiki draft."
-            );
+            $judulSekre = 'Draft Dikembalikan oleh Kabag TU';
+            $pesanSekre = "Draft surat \"{$surat->perihal}\" atas nama {$namaPemohon} dikembalikan oleh Kabag TU.{$catatanText} Mohon perbaiki draft.";
+            $this->sendNotif($surat->id, [$surat->handler_id], $judulSekre, $pesanSekre);
         }
 
         return response()->json([
@@ -347,13 +361,16 @@ class ApprovalController extends Controller
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-        // Notifikasi ke pemohon: surat diparaf Wakil Dekan
-        $this->sendNotif(
-            $surat->id,
-            [$surat->pemohon_id],
-            'Surat Diparaf Wakil Dekan',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diparaf oleh Wakil Dekan dan menunggu tanda tangan Dekan."
-        );
+        // Notifikasi ke pemohon: surat diparaf Wakil Dekan (in-app saja)
+        $judulParaf = 'Surat Diparaf Wakil Dekan';
+        $pesanParaf = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah diparaf oleh Wakil Dekan dan menunggu tanda tangan.";
+        $this->sendNotif($surat->id, [$surat->pemohon_id], $judulParaf, $pesanParaf);
+
+        // Notif ke sekretariat untuk melanjutkan proses TTD (in-app saja)
+        $sekretariatIds = User::where('role', 'sekretariat')->pluck('id')->toArray();
+        $judulSekre = 'Surat Sudah Diparaf — Siap TTD';
+        $pesanSekre = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} sudah diparaf Wakil Dekan. Mohon proses penandatanganan.";
+        $this->sendNotif($surat->id, $sekretariatIds, $judulSekre, $pesanSekre);
 
         return response()->json([
             'message' => 'Paraf berhasil diberikan',
@@ -421,22 +438,17 @@ class ApprovalController extends Controller
 
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
-        // Notifikasi ke pemohon: surat ditandatangani Dekan & siap diunduh
-        $this->sendNotif(
-            $surat->id,
-            [$surat->pemohon_id],
-            'Surat Ditandatangani Dekan',
-            "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah ditandatangani oleh Dekan dan siap diunduh."
-        );
+        // Notifikasi ke pemohon: surat selesai ditandatangani & siap diunduh
+        $judulPemohon = 'Surat Selesai Ditandatangani — Siap Diunduh';
+        $pesanPemohon = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah ditandatangani dan siap diunduh.";
+        $this->sendNotif($surat->id, [$surat->pemohon_id], $judulPemohon, $pesanPemohon);
+        $this->sendEmailNotif([$surat->pemohon_id], $judulPemohon, $pesanPemohon, 'selesai', $surat);
 
-        // Notifikasi ke sekretariat (handler): perlu diarsipkan
+        // Notifikasi ke sekretariat (handler): perlu diarsipkan (in-app saja)
         if ($surat->handler_id) {
-            $this->sendNotif(
-                $surat->id,
-                [$surat->handler_id],
-                'Surat Siap Diarsipkan',
-                "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah selesai ditandatangani Dekan. Mohon segera arsipkan."
-            );
+            $judulSekre = 'Surat Siap Diarsipkan';
+            $pesanSekre = "Surat \"{$surat->perihal}\" atas nama {$namaPemohon} telah selesai ditandatangani. Mohon segera arsipkan.";
+            $this->sendNotif($surat->id, [$surat->handler_id], $judulSekre, $pesanSekre);
         }
 
         return response()->json([
