@@ -7,6 +7,83 @@ import {
     CalendarDays, MapPin, Users, FileText, Briefcase, AlertCircle, CheckCircle
 } from "lucide-react";
 
+// ── Daftar pilihan tempat/ruangan ───────────────────────────────────────────
+const TEMPAT_OPTIONS = [
+    "Ruang Rapat Dekan",
+    "Ruang Seminar Lt. 1",
+    "Ruang Seminar Lt. 2",
+    "Aula Gedung A",
+    "Laboratorium Komputer",
+    "Online / Daring (Zoom/GMeet)",
+];
+
+// ── LocationSelect Component ─────────────────────────────────────────────────
+interface LocationSelectProps {
+    value: string;
+    onChange: (val: string) => void;
+    required?: boolean;
+    inputClass: string;
+}
+
+function LocationSelect({ value, onChange, required = false, inputClass }: LocationSelectProps) {
+    // isOther: true ketika user memilih "Lainnya (ketik sendiri)"
+    const [isOther, setIsOther] = useState(
+        // Inisialisasi: jika value sudah ada dan bukan dari daftar, berarti mode "lainnya"
+        value !== "" && !TEMPAT_OPTIONS.includes(value)
+    );
+
+    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = e.target.value;
+        if (selected === "__lainnya__") {
+            setIsOther(true);
+            onChange(""); // kosongkan, user akan ketik sendiri
+        } else {
+            setIsOther(false);
+            onChange(selected);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            {/* Dropdown */}
+            <div className="relative">
+                <select
+                    value={isOther ? "__lainnya__" : value}
+                    onChange={handleSelectChange}
+                    required={required && !isOther}
+                    className={`${inputClass} appearance-none pr-10`}
+                >
+                    <option value="">-- Pilih Tempat Kegiatan --</option>
+                    {TEMPAT_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                    <option value="__lainnya__">Lainnya (ketik sendiri)</option>
+                </select>
+                <ChevronDown
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                />
+            </div>
+
+            {/* Input teks — muncul saat "Lainnya" dipilih */}
+            {isOther && (
+                <div className="relative">
+                    <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400 pointer-events-none" />
+                    <input
+                        type="text"
+                        autoFocus
+                        required={required}
+                        placeholder="Tulis nama tempat / ruangan..."
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        className={`${inputClass} pl-9`}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ── TagInput Component ──────────────────────────────────────────────────────
 // Didefinisikan di LUAR BuatSuratPage agar tidak di-unmount setiap re-render.
 const MAX_CHIPS = 10;
@@ -365,8 +442,12 @@ export default function BuatSuratPage() {
                                     </div>
                                     <div>
                                         <label className={labelClass}>Tempat</label>
-                                        <input type="text" required placeholder="Lokasi kegiatan" className={inputClass}
-                                            onChange={e => handleDetailChange("tempat", e.target.value)} />
+                                        <LocationSelect
+                                            required
+                                            inputClass={inputClass}
+                                            value={detail["tempat"] ?? ""}
+                                            onChange={(val) => handleDetailChange("tempat", val)}
+                                        />
                                     </div>
                                     <div className="sm:col-span-2">
                                         <label className={labelClass}>Ditujukan Kepada</label>
