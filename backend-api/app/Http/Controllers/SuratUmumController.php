@@ -145,7 +145,7 @@ class SuratUmumController extends Controller
         $this->loadDetail($surat);
 
         return response()->json([
-            'message' => 'Permohonan surat berhasil dibuat',
+            'message' => 'Permohonan surat berhasil terkirim',
             'data'    => $surat,
         ], 201);
     }
@@ -299,8 +299,8 @@ class SuratUmumController extends Controller
         $namaPemohon = $surat->pemohon->name ?? 'Pemohon';
 
         // Notifikasi ke pemohon: surat berhasil dibuat (in-app saja)
-        $judulPemohon = 'Permohonan Surat Dibuat';
-        $pesanPemohon = "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil dibuat dan sedang diproses oleh sekretariat.";
+        $judulPemohon = 'Permohonan Surat Terkirim';
+        $pesanPemohon = "Permohonan surat \"{$surat->perihal}\" atas nama {$namaPemohon} berhasil terkirim dan menunggu diproses oleh sekretariat.";
         NotifikasiSurat::create([
             'surat_umum_id' => $surat->id,
             'user_id'       => $surat->pemohon_id,

@@ -12,6 +12,7 @@ import {
     AlertCircle,
     RotateCcw,
     Archive,
+    Send,
 } from "lucide-react";
 
 // Import Komponen Per Role
@@ -31,7 +32,7 @@ type SuratUmum = {
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
-    menunggu:      { label: "Diproses",      color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
+    menunggu:      { label: "Terkirim",      color: "bg-orange-100 text-orange-700 border-orange-200",       icon: Send },
     diproses:      { label: "Diproses",      color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },
     dikembalikan:  { label: "Dikembalikan",  color: "bg-red-100 text-red-700 border-red-200",            icon: RotateCcw },
     diverifikasi:  { label: "Diproses",      color: "bg-blue-100 text-blue-700 border-blue-200",         icon: Clock },

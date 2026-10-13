@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     FileText, Clock, CheckCircle, XCircle, RotateCcw, Archive,
-    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle, Download, X
+    ArrowLeft, User, Calendar, Hash, MessageSquare, Paperclip, AlertCircle, Download, X, Send
 } from "lucide-react";
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
-    menunggu: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
+    menunggu: { label: "Terkirim", color: "text-orange-700", bg: "bg-orange-100" },
     diproses: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
     dikembalikan: { label: "Dikembalikan", color: "text-red-700", bg: "bg-red-100" },
     diverifikasi: { label: "Diproses", color: "text-blue-700", bg: "bg-blue-100" },
@@ -28,7 +28,7 @@ const JENIS_MAP: Record<string, string> = {
 };
 
 const APPROVAL_STEPS = [
-    { status: "menunggu", label: "Permohonan Diajukan", actor: "Pemohon" },
+    { status: "menunggu", label: "Terkirim", actor: "Pemohon" },
     { status: "diproses", label: "Diproses Sekretariat", actor: "Sekretariat" },
     { status: "diverifikasi", label: "Diverifikasi Kabag TU", actor: "Kabag TU" },
     { status: "ditandatangani", label: "Ditandatangani Dekan", actor: "Sekretariat" },

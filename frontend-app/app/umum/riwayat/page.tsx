@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
     FileText, Clock, CheckCircle, RotateCcw,
-    Archive, ChevronRight, ChevronLeft, AlertCircle, Search, X, Calendar,
+    Archive, ChevronRight, ChevronLeft, AlertCircle, Search, X, Calendar, Send,
 } from "lucide-react";
 
 type SuratUmum = {
@@ -18,7 +18,7 @@ type SuratUmum = {
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
-    menunggu: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
+    menunggu: { label: "Terkirim", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Send },
     diproses: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
     dikembalikan: { label: "Dikembalikan", color: "bg-red-100 text-red-700 border-red-200", icon: RotateCcw },
     diverifikasi: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
