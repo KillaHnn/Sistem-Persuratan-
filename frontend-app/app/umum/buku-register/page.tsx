@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Search, X, Loader2, BookOpen } from "lucide-react";
+import { Plus, Edit, Trash2, Search, X, Loader2, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function BukuRegisterPage() {
     const [data, setData] = useState<any[]>([]);
@@ -9,6 +9,8 @@ export default function BukuRegisterPage() {
     const [dropdownSurat, setDropdownSurat] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
     
     const [formData, setFormData] = useState({
         id: "",
@@ -152,39 +154,45 @@ export default function BukuRegisterPage() {
         (d.perihal || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+    const paginatedData = filteredData.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
     return (
-        <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="p-3.5 sm:p-4 bg-orange-50 text-orange-500 rounded-2xl shrink-0">
-                        <BookOpen size={28} />
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-50 text-orange-500 rounded-xl shrink-0">
+                        <BookOpen size={24} />
                     </div>
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Buku Register Surat</h1>
-                        <p className="text-xs sm:text-sm text-gray-500">Pencatatan digital nomor surat keluar (Sekretariat)</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Pencatatan digital nomor surat keluar (Sekretariat)</p>
                     </div>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl transition font-medium text-sm w-full sm:w-auto"
+                    className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl transition font-medium text-xs sm:text-sm shadow-sm active:scale-95 w-full sm:w-auto"
                 >
-                    <Plus size={18} />
+                    <Plus size={16} />
                     <span>Tambah Register</span>
                 </button>
             </div>
 
             {/* List */}
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-3.5 sm:p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/40">
                     <div className="relative w-full max-w-sm">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
                             placeholder="Cari nomor surat atau perihal..."
                             value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 text-sm"
+                            onChange={e => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="w-full pl-9 pr-4 py-1.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-500 text-xs sm:text-sm bg-white"
                         />
                     </div>
                 </div>
@@ -215,7 +223,7 @@ export default function BukuRegisterPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredData.map((item) => (
+                                paginatedData.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50/50 transition">
                                         <td className="px-6 py-4 font-mono font-medium text-gray-800">
                                             {item.nomor_surat}
@@ -253,6 +261,57 @@ export default function BukuRegisterPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="p-3 sm:p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-50/30">
+                        <p className="text-xs text-gray-500">
+                            Menampilkan <span className="font-semibold text-gray-800">{(currentPage - 1) * PAGE_SIZE + 1}</span> - <span className="font-semibold text-gray-800">{Math.min(currentPage * PAGE_SIZE, filteredData.length)}</span> dari <span className="font-semibold text-gray-800">{filteredData.length}</span> data
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-1.5 sm:px-3 sm:py-1 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                            >
+                                <ChevronLeft size={14} />
+                                <span className="hidden sm:inline">Sebelumnya</span>
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                                    .map((p, idx, arr) => {
+                                        const prev = arr[idx - 1];
+                                        return (
+                                            <div key={p} className="flex items-center">
+                                                {prev && p - prev > 1 && (
+                                                    <span className="px-1 text-gray-400 text-xs">...</span>
+                                                )}
+                                                <button
+                                                    onClick={() => setCurrentPage(p)}
+                                                    className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-medium transition ${
+                                                        currentPage === p
+                                                            ? "bg-orange-500 text-white shadow-sm font-semibold"
+                                                            : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                                    }`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-1.5 sm:px-3 sm:py-1 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                            >
+                                <span className="hidden sm:inline">Berikutnya</span>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}

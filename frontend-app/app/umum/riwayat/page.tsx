@@ -18,7 +18,7 @@ type SuratUmum = {
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
-    menunggu: { label: "Terkirim", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Send },
+    menunggu: { label: "Menunggu", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Send },
     diproses: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
     dikembalikan: { label: "Dikembalikan", color: "bg-red-100 text-red-700 border-red-200", icon: RotateCcw },
     diverifikasi: { label: "Diproses", color: "bg-blue-100 text-blue-700 border-blue-200", icon: Clock },
@@ -353,12 +353,15 @@ function SearchModal({ title, subtitle, form, onChange, onApply, onReset, onClos
         </div>
     );
 }
+const PAGE_SIZE = 10;
+
 export default function RiwayatPage() {
     const [surats, setSurats] = useState<SuratUmum[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState("semua");
     const [userRole, setUserRole] = useState<string>("pemohon");
+    const [currentPage, setCurrentPage] = useState(1);
 
     // --- Pemohon: modal cari surat ---
     const [showCariModal, setShowCariModal] = useState(false);
@@ -463,12 +466,14 @@ export default function RiwayatPage() {
     const handleApplyCari = () => {
         setCariApplied({ ...cariForm });
         setHasSearched(true);
+        setCurrentPage(1);
         setShowCariModal(false);
     };
     const handleResetCari = () => {
         setCariForm({ ...emptyForm });
         setCariApplied({ ...emptyForm });
         setHasSearched(false);
+        setCurrentPage(1);
         setShowCariModal(false);
     };
     const hasActiveFilter = hasSearched && Object.values(cariApplied).some(v => v.trim() !== "");
@@ -477,12 +482,14 @@ export default function RiwayatPage() {
     const handleApplyArsip = () => {
         setArsipApplied({ ...arsipForm });
         setHasArsipSearched(true);
+        setCurrentPage(1);
         setShowArsipModal(false);
     };
     const handleResetArsip = () => {
         setArsipForm({ ...emptyForm });
         setArsipApplied({ ...emptyForm });
         setHasArsipSearched(false);
+        setCurrentPage(1);
         setShowArsipModal(false);
     };
     const hasArsipFilter = hasArsipSearched && Object.values(arsipApplied).some(v => v.trim() !== "");
@@ -509,21 +516,22 @@ export default function RiwayatPage() {
         // Remove duplicates
         return [...new Set(matched)];
     };
+    // Pagination
+    const totalPages = Math.ceil(displayList.length / PAGE_SIZE);
+    const paginatedList = displayList.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Riwayat Surat</h1>
-                    <p className="text-sm sm:text-base text-gray-500 mt-1">
+        <div className="space-y-4 animate-in fade-in duration-500">
+            {/* Header compact */}
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Riwayat Surat</h1>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                         {userRole === "sekretariat"
-                            ? "Semua permohonan surat yang masuk ke sekretariat"
-                            : "Semua permohonan surat yang pernah Anda ajukan"}
+                            ? "Semua surat yang masuk ke sekretariat"
+                            : "Permohonan surat yang pernah Anda ajukan"}
                     </p>
                 </div>
-
-                {/* Tombol Cari: tampil untuk semua role */}
                 <button
                     onClick={() => {
                         if (userRole === "sekretariat") {
@@ -534,7 +542,7 @@ export default function RiwayatPage() {
                             setShowCariModal(true);
                         }
                     }}
-                    className="flex items-center justify-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-100 active:scale-95 text-sm font-medium w-full sm:w-auto"
+                    className="flex items-center gap-1.5 bg-orange-500 text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition shadow-sm active:scale-95 text-sm font-medium shrink-0"
                 >
                     <Search size={18} />
                     <span>Cari Surat</span>
@@ -610,45 +618,100 @@ export default function RiwayatPage() {
                         </p>
                     </div>
                 ) : (
-                    displayList.map((surat) => {
-                        const st = getStatusInfo(surat.status);
-                        const StIcon = st.icon;
-                        return (
-                            <Link key={surat.id} href={`/umum/riwayat/${surat.id}`}
-                                className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border border-gray-100 bg-white hover:border-orange-200 hover:shadow-md transition-all gap-3 sm:gap-4">
-                                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                                    <div className="p-3 bg-orange-50 text-orange-500 rounded-xl hidden sm:flex shrink-0">
-                                        <FileText size={22} />
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate text-sm sm:text-base">
-                                            {surat.perihal}
-                                        </h3>
-                                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-xs text-gray-500">
-                                            <span className="bg-gray-100 px-2 py-0.5 rounded-md font-medium">
-                                                {JENIS_MAP[surat.jenis_surat] || surat.jenis_surat}
-                                            </span>
-                                            <span>•</span>
-                                            <span>{formatDate(surat.tgl_permohonan)}</span>
-                                            {surat.nomor_surat && (
-                                                <>
+                    <>
+                        <div className="space-y-2.5 sm:space-y-3">
+                            {paginatedList.map((surat) => {
+                                const st = getStatusInfo(surat.status);
+                                const StIcon = st.icon;
+                                return (
+                                    <Link key={surat.id} href={`/umum/riwayat/${surat.id}`}
+                                        className="group flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-gray-100 bg-white hover:border-orange-200 hover:shadow-md transition-all gap-3 sm:gap-4">
+                                        <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                                            <div className="p-2.5 bg-orange-50 text-orange-500 rounded-xl hidden sm:flex shrink-0">
+                                                <FileText size={20} />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors truncate text-sm sm:text-base">
+                                                    {surat.perihal}
+                                                </h3>
+                                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1 text-xs text-gray-500">
+                                                    <span className="bg-gray-100 px-2 py-0.5 rounded-md font-medium">
+                                                        {JENIS_MAP[surat.jenis_surat] || surat.jenis_surat}
+                                                    </span>
                                                     <span>•</span>
-                                                    <span className="font-mono text-gray-600">{surat.nomor_surat}</span>
-                                                </>
-                                            )}
+                                                    <span>{formatDate(surat.tgl_permohonan)}</span>
+                                                    {surat.nomor_surat && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span className="font-mono text-gray-600">{surat.nomor_surat}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
+                                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
+                                            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${st.color}`}>
+                                                <StIcon size={12} />
+                                                {st.label}
+                                            </span>
+                                            <ChevronRight size={16} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+
+                        {/* Pagination Bar */}
+                        {totalPages > 1 && (
+                            <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                                <p className="text-xs sm:text-sm text-gray-500">
+                                    Menampilkan <span className="font-semibold text-gray-800">{(currentPage - 1) * PAGE_SIZE + 1}</span> - <span className="font-semibold text-gray-800">{Math.min(currentPage * PAGE_SIZE, displayList.length)}</span> dari <span className="font-semibold text-gray-800">{displayList.length}</span> surat
+                                </p>
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                                    >
+                                        <ChevronLeft size={16} />
+                                        <span className="hidden sm:inline">Sebelumnya</span>
+                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                            .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                                            .map((p, idx, arr) => {
+                                                const prev = arr[idx - 1];
+                                                return (
+                                                    <div key={p} className="flex items-center">
+                                                        {prev && p - prev > 1 && (
+                                                            <span className="px-1 text-gray-400 text-xs">...</span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => setCurrentPage(p)}
+                                                            className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-medium transition ${
+                                                                currentPage === p
+                                                                    ? "bg-orange-500 text-white shadow-sm font-semibold"
+                                                                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                                            }`}
+                                                        >
+                                                            {p}
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
                                     </div>
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200 text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1"
+                                    >
+                                        <span className="hidden sm:inline">Berikutnya</span>
+                                        <ChevronRight size={16} />
+                                    </button>
                                 </div>
-                                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-50">
-                                    <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${st.color}`}>
-                                        <StIcon size={12} />
-                                        {st.label}
-                                    </span>
-                                    <ChevronRight size={16} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
-                                </div>
-                            </Link>
-                        );
-                    })
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

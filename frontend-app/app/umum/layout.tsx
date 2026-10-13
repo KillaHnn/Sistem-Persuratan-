@@ -10,7 +10,7 @@ export default function UmumLayout({
         <IdleLogoutProvider>
             <div className="flex min-h-screen bg-gray-50/50 flex-col md:flex-row">
                 <Sidebar />
-                <main className="flex-1 p-4 pt-20 sm:p-6 md:p-8 md:pt-8 lg:p-12 min-w-0">
+                <main className="flex-1 p-4 pt-20 sm:p-5 md:p-6 lg:p-7 md:pt-6 min-w-0 max-w-7xl w-full mx-auto">
                     {children}
                 </main>
             </div>
