@@ -12,9 +12,22 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email'    => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:users',
+                function ($attribute, $value, $fail) {
+                    $allowedDomains = ['apps.ipb.ac.id', 'student.ipb.ac.id'];
+                    $domain = strtolower(substr(strrchr($value, '@'), 1));
+                    if (!in_array($domain, $allowedDomains)) {
+                        $fail('Registrasi hanya diperbolehkan menggunakan Email resmi civitas akademika IPB (@apps.ipb.ac.id atau @student.ipb.ac.id).');
+                    }
+                },
+            ],
             'password' => 'required|string|min:6',
         ]);
 

@@ -69,8 +69,8 @@ class SuratUmumController extends Controller
             'jenis_surat' => 'required|in:undangan,surat_tugas,surat_pengantar,surat_keterangan,surat_permohonan,surat_keputusan,lainnya',
             'perihal'     => 'required|string',
             'detail'      => 'required|array',
-            'lampiran'    => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:10240', // Optional, max 10MB
-            'file_penerima' => 'nullable|file|max:10240', // File daftar penerima, semua jenis, max 10MB
+            'lampiran'    => 'nullable|file|mimes:pdf,doc,docx|max:10240', // Optional, maks 10MB (PDF/DOC/DOCX)
+            'file_penerima' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:10240', // Daftar penerima, maks 10MB
         ]);
 
         // Validasi detail sesuai jenis surat

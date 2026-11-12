@@ -698,7 +698,7 @@ export default function BuatSuratPage() {
                                         {/* Upload file daftar penerima */}
                                         <div className="mt-3">
                                             <label className={labelClass}>Lampiran Daftar Penerima (opsional)</label>
-                                            <p className="text-xs text-gray-400 mb-2">Lampirkan file jika penerima lebih dari {MAX_CHIPS} orang</p>
+                                            <p className="text-xs text-gray-400 mb-2">Lampirkan file jika penerima lebih dari {MAX_CHIPS} orang (PDF / DOC / DOCX / XLS / XLSX)</p>
                                             {filePenerima ? (
                                                 <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-xl">
                                                     <div className="flex items-center gap-2">
@@ -716,7 +716,7 @@ export default function BuatSuratPage() {
                                                 <label className="flex items-center gap-3 p-3 border border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
                                                     <Upload size={16} className="text-gray-400" />
                                                     <span className="text-sm text-gray-500">Klik untuk upload file daftar penerima</span>
-                                                    <input type="file" className="hidden" onChange={e => setFilePenerima(e.target.files?.[0] || null)} />
+                                                    <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" className="hidden" onChange={e => setFilePenerima(e.target.files?.[0] || null)} />
                                                 </label>
                                             )}
                                         </div>
@@ -733,7 +733,7 @@ export default function BuatSuratPage() {
                         {/* Lampiran Pendukung */}
                         <div className="border-t border-gray-100 pt-6">
                             <label className={labelClass}>Lampiran Pendukung (opsional)</label>
-                            <p className="text-xs text-gray-400 mb-3">Contoh: Surat undangan dari pihak lain, SK, atau dokumen referensi. Maks 10MB (PDF/JPG/PNG/DOCX)</p>
+                            <p className="text-xs text-gray-400 mb-3">Contoh: Surat undangan dari pihak lain, SK, atau dokumen referensi. Maks 10MB (PDF / DOC / DOCX)</p>
                             {lampiran ? (
                                 <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-200 rounded-xl">
                                     <div className="flex items-center gap-3">
@@ -752,7 +752,7 @@ export default function BuatSuratPage() {
                                 <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-orange-300 hover:bg-orange-50 transition-all">
                                     <Upload size={24} className="text-gray-400 mb-2" />
                                     <span className="text-sm text-gray-500">Klik untuk upload atau drag & drop</span>
-                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx" className="hidden"
+                                    <input type="file" accept=".pdf,.doc,.docx" className="hidden"
                                         onChange={e => setLampiran(e.target.files?.[0] || null)} />
                                 </label>
                             )}

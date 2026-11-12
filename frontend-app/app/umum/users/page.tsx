@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, Edit, Lock, Power, PowerOff, Loader2 } from "lucide-react";
+import { Users, Plus, Edit, Lock, Power, PowerOff, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState<any[]>([]);
@@ -23,6 +23,7 @@ export default function UserManagementPage() {
         is_active: true,
     });
     const [resetPassword, setResetPassword] = useState("");
+    const [showResetPassword, setShowResetPassword] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -160,6 +161,7 @@ export default function UserManagementPage() {
 
             setIsResetOpen(false);
             setResetPassword("");
+            setShowResetPassword(false);
             alert("Password berhasil direset!");
         } catch (err: any) {
             alert(err.message);
@@ -240,7 +242,12 @@ export default function UserManagementPage() {
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button
-                                                onClick={() => { setSelectedUser(user); setIsResetOpen(true); }}
+                                                onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setResetPassword("");
+                                                    setShowResetPassword(false);
+                                                    setIsResetOpen(true);
+                                                }}
                                                 className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"
                                                 title="Reset Password"
                                             >
@@ -368,21 +375,32 @@ export default function UserManagementPage() {
                             Masukkan password baru untuk <strong>{selectedUser?.name}</strong>.
                         </p>
                         <form onSubmit={handleResetPassword} className="space-y-4">
-                            <div>
+                            <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showResetPassword ? "text" : "password"}
                                     value={resetPassword}
                                     onChange={(e) => setResetPassword(e.target.value)}
                                     required
                                     placeholder="Password Baru"
                                     minLength={6}
-                                    className="w-full border rounded-xl px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none"
+                                    className="w-full border rounded-xl px-4 py-2 pr-10 focus:ring-2 focus:ring-orange-500 outline-none"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowResetPassword(!showResetPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                                    title={showResetPassword ? "Sembunyikan password" : "Lihat password"}
+                                >
+                                    {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
                             </div>
                             <div className="flex justify-end gap-3 mt-4">
                                 <button
                                     type="button"
-                                    onClick={() => setIsResetOpen(false)}
+                                    onClick={() => {
+                                        setIsResetOpen(false);
+                                        setShowResetPassword(false);
+                                    }}
                                     className="px-4 py-2 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
                                 >
                                     Batal

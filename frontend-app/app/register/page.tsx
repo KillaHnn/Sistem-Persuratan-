@@ -22,10 +22,20 @@ export default function RegisterPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const isValidIPBEmail = (email: string) => {
+        return email.endsWith("@apps.ipb.ac.id") || email.endsWith("@student.ipb.ac.id");
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+
+        if (!isValidIPBEmail(formData.email)) {
+            setError("Hanya email resmi civitas akademika IPB yang diperbolehkan (@apps.ipb.ac.id atau @student.ipb.ac.id).");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             const res = await fetch("/api/register", {
@@ -158,6 +168,9 @@ export default function RegisterPage() {
                                         className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange-100 focus:border-orange-500 focus:bg-white transition-all duration-300 placeholder:text-gray-400"
                                     />
                                 </div>
+                                <p className="text-xs text-orange-500 font-medium ml-1 flex items-center gap-1">
+                                    Menggunakan Email resmi civitas akademika IPB
+                                </p>
                             </div>
 
                             {/* Password */}
